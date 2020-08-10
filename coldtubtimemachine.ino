@@ -71,7 +71,7 @@ void setup(void)
 
 			// Show device resolutions - BEFORE
 			Serial.print("Resolution (after):  ");
-			Serial.print(sensors.getResolution(airAmbient), DEC);
+			Serial.print(sensors.getResolution(devices[index]), DEC);
 			Serial.println();
 		}
 		else
@@ -116,15 +116,6 @@ void printTemperature(DeviceAddress deviceAddress)
 	Serial.print(" F");
 }
 
-// Function to show device info
-void printData(DeviceAddress deviceAddress)
-{
-	GETNAMEOF(devices[index]);
-	Serial.print(": ");
-	printTemperature(deviceAddress);
-	Serial.println();
-}
-
 // Main - Get and show temperatures
 void loop(void)
 {
@@ -136,7 +127,10 @@ void loop(void)
 	// Show the device info
 	for (int index = 0; index < deviceCount; index++)
 	{
-		printData(devices[index]);
+		GETNAMEOF(devices[index]);
+		Serial.print(": ");
+		printTemperature(deviceAddress);
+		Serial.println();
 	}
 
 	delay(timeDelay);
