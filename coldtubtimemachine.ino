@@ -15,10 +15,10 @@ DeviceAddress devices[] = {
 	waterLow,
 	airAmbient}
 
-// Update addresses below to valid device addresses on your bus
-//DeviceAddress waterHigh  = { 0x28, 0x1D, 0x39, 0x31, 0x2, 0x0, 0x0, 0xF0 };
-//DeviceAddress waterLow   = { 0x28, 0x3F, 0x1C, 0x31, 0x2, 0x0, 0x0, 0x2  };
-//DeviceAddress airAmbient = { 0x28, 0x3F, 0x1C, 0x31, 0x2, 0x0, 0x0, 0x2  };
+// // Update addresses below to valid device addresses on your bus
+// DeviceAddress waterHigh  = { 0x28, 0x1D, 0x39, 0x31, 0x2, 0x0, 0x0, 0xF0 };
+// DeviceAddress waterLow   = { 0x28, 0x3F, 0x1C, 0x31, 0x2, 0x0, 0x0, 0x2  };
+// DeviceAddress airAmbient = { 0x28, 0x3F, 0x1C, 0x31, 0x2, 0x0, 0x0, 0x2  };
 
 const int deviceCount = 3;
 const int timeDelay = 1000;
@@ -98,12 +98,6 @@ void setup(void)
 	{
 		if (!oneWire.search(devices[index]))
 		{
-			// Show the device info
-			Serial.print("Address not found for ");
-			Serial.print(GETNAMEOF(devices[index]));
-		}
-		else
-		{
 			// Show the addresses found on the bus
 			Serial.print(GETNAMEOF(devices[index]));
 			Serial.print(" Address: ");
@@ -121,9 +115,15 @@ void setup(void)
 
 			// Show device resolutions - BEFORE
 			Serial.print(GETNAMEOF(devices[index]));
-			Serial.print(" Resolution (after): ");
+			Serial.print(" Resolution (after) : ");
 			Serial.print(sensors.getResolution(airAmbient), DEC);
 			Serial.println();
+		}
+		else
+		{
+			// Show the device info
+			Serial.print("Address not found for ");
+			Serial.print(GETNAMEOF(devices[index]));
 		}
 	}
 }
@@ -160,7 +160,6 @@ void printTemperature(DeviceAddress deviceAddress)
 // Function to show device resolution
 void printResolution(DeviceAddress deviceAddress)
 {
-	// printAddress(deviceAddress);
 	Serial.print(GETNAMEOF(deviceAddress));
 	Serial.print(" Resolution: ");
 	Serial.print(sensors.getResolution(deviceAddress));
@@ -171,7 +170,7 @@ void printResolution(DeviceAddress deviceAddress)
 void printData(DeviceAddress deviceAddress, )
 {
 	Serial.print(GETNAMEOF(deviceAddress));
-	Serial.print("Device Address: ");
+	Serial.print(" Address: ");
 	printAddress(deviceAddress);
 	Serial.print(" - ");
 	printTemperature(deviceAddress);
@@ -188,14 +187,14 @@ void loop(void)
 
 	delay(timeDelay);
 
-	// Show the device info
-	printData(waterHigh);
-	printData(waterLow);
-	printData(airAmbient);
+	// // Show the device info
+	// printData(waterHigh);
+	// printData(waterLow);
+	// printData(airAmbient);
 
 	// Show the device info
 	for (int index = 0; index < deviceCount; index++)
 	{
-		printData(device[index]);
+		printData(devices[index]);
 	}
 }
