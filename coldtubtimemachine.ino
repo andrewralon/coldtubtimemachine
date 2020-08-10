@@ -96,34 +96,31 @@ void setup(void)
 
 	for (int index = 0; index < deviceCount; index++)
 	{
-		if (!oneWire.search(devices[index]))
+		GETNAMEOF(devices[index]);
+
+		if (oneWire.search(devices[index]))
 		{
 			// Show the addresses found on the bus
-			Serial.print(GETNAMEOF(devices[index]));
-			Serial.print(" Address: ");
+			Serial.print("Address: ");
 			printAddress(devices[index]);
 			Serial.println();
 
 			// Show device resolutions - BEFORE
-			Serial.print(GETNAMEOF(devices[index]));
-			Serial.print(" Resolution (before): ");
-			Serial.print(sensors.getResolution(airAmbient), DEC);
+			Serial.print("Resolution (before): ");
+			Serial.print(sensors.getResolution(devices[index]), DEC);
 			Serial.println();
 
 			// Set the device resolutions to 9 bits
 			sensors.setResolution(devices[index], TEMPERATURE_PRECISION);
 
 			// Show device resolutions - BEFORE
-			Serial.print(GETNAMEOF(devices[index]));
-			Serial.print(" Resolution (after) : ");
+			Serial.print("Resolution (after) : ");
 			Serial.print(sensors.getResolution(airAmbient), DEC);
 			Serial.println();
 		}
 		else
 		{
-			// Show the device info
-			Serial.print("Address not found for ");
-			Serial.print(GETNAMEOF(devices[index]));
+			Serial.print("Address not found");
 		}
 	}
 }
@@ -157,19 +154,10 @@ void printTemperature(DeviceAddress deviceAddress)
 	Serial.print(" F");
 }
 
-// Function to show device resolution
-void printResolution(DeviceAddress deviceAddress)
-{
-	Serial.print(GETNAMEOF(deviceAddress));
-	Serial.print(" Resolution: ");
-	Serial.print(sensors.getResolution(deviceAddress));
-	Serial.println();
-}
-
 // Function to show device info
-void printData(DeviceAddress deviceAddress, )
+void printData(DeviceAddress deviceAddress)
 {
-	Serial.print(GETNAMEOF(deviceAddress));
+	GETNAMEOF(devices[index]);
 	Serial.print(" Address: ");
 	printAddress(deviceAddress);
 	Serial.print(" - ");
