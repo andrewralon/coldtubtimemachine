@@ -1,6 +1,5 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <stdio.h>
 
 #define GETNAMEOF(name) getnameof(#name, (name))
 #define ONE_WIRE_BUS 2			// Data wire is plugged into Arduino port 2
@@ -15,11 +14,6 @@ DeviceAddress devices[] = {
 	waterLow,
 	airAmbient}
 
-// // Update addresses below to valid device addresses on your bus
-// DeviceAddress waterHigh  = { 0x28, 0x1D, 0x39, 0x31, 0x2, 0x0, 0x0, 0xF0 };
-// DeviceAddress waterLow   = { 0x28, 0x3F, 0x1C, 0x31, 0x2, 0x0, 0x0, 0x2  };
-// DeviceAddress airAmbient = { 0x28, 0x3F, 0x1C, 0x31, 0x2, 0x0, 0x0, 0x2  };
-
 const int deviceCount = 3;
 const int timeDelay = 1000;
 float tempC = 0;
@@ -28,9 +22,10 @@ float tempF = 0;
 // Setup - Initialize the sensors here
 void setup(void)
 {
+	Serial.println("O HAI");
+
 	// Start serial port and library
 	Serial.begin(9600);
-	Serial.println("O HAI");
 	sensors.begin();
 
 	// Get all devices on the bus
@@ -63,20 +58,18 @@ void setup(void)
 
 			// Show device resolutions - BEFORE
 			Serial.print("Resolution (before): ");
-			Serial.print(sensors.getResolution(devices[index]), DEC);
-			Serial.println();
+			Serial.println(sensors.getResolution(devices[index]), DEC);
 
 			// Set the device resolutions to 9 bits
 			sensors.setResolution(devices[index], TEMPERATURE_PRECISION);
 
 			// Show device resolutions - BEFORE
 			Serial.print("Resolution (after):  ");
-			Serial.print(sensors.getResolution(devices[index]), DEC);
-			Serial.println();
+			Serial.println(sensors.getResolution(devices[index]), DEC);
 		}
 		else
 		{
-			Serial.print("Address not found");
+			Serial.println("*** Address not found ***");
 		}
 	}
 }
