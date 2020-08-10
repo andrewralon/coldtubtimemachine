@@ -84,7 +84,7 @@ void setup(void)
 // Function to get the name of a variable
 void getnameof(char *name, int value) // char[] ???
 {
-	//Serial.print("name: %s\tvalue: %d\n", name, value);
+	// Serial.print("name: %s\tvalue: %d\n", name, value);
 	Serial.print(name);
 }
 
@@ -125,7 +125,7 @@ void printData(DeviceAddress deviceAddress)
 	Serial.println();
 }
 
-// Main - Get and show the temperature
+// Main - Get and show temperatures
 void loop(void)
 {
 	// Request temperatures from all bus devices
