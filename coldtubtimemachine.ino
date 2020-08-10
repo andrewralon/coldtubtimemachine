@@ -97,6 +97,7 @@ void setup(void)
 	for (int index = 0; index < deviceCount; index++)
 	{
 		GETNAMEOF(devices[index]);
+		Serial.println();
 
 		if (oneWire.search(devices[index]))
 		{
@@ -148,9 +149,15 @@ void printAddress(DeviceAddress deviceAddress)
 void printTemperature(DeviceAddress deviceAddress)
 {
 	float tempC = sensors.getTempC(deviceAddress);
+	float tempF = DallasTemperature::toFahrenheit(tempC);
+
+	if (tempC < 10)
+		Serial.print(" ");
 	Serial.print(tempC);
 	Serial.print(" C / ");
-	Serial.print(DallasTemperature::toFahrenheit(tempC));
+	if (tempF < 10)
+		Serial.print(" ");
+	Serial.print(tempF);
 	Serial.print(" F");
 }
 
