@@ -46,53 +46,8 @@ void setup(void)
 	else
 		Serial.println("OFF");
 
-	// Get the address for all devices
+	// Get the addresses for all devices
 	oneWire.reset_search();
-
-	// // Show the device info
-	// if (!oneWire.search(waterHigh))
-	// 	Serial.println("Address for waterHigh  not found");
-	// if (!oneWire.search(waterLow))
-	// 	Serial.println("Address for waterLow   not found");
-	// if (!oneWire.search(airAmbient))
-	// 	Serial.println("Address for airAmbient not found");
-
-	// // Show the addresses found on the bus
-	// Serial.print("waterHigh  Device Address: ");
-	// printAddress(waterHigh);
-	// Serial.println();
-	// Serial.print("waterLow   Device Address: ");
-	// printAddress(waterLow);
-	// Serial.println();
-	// Serial.print("airAmbient Device Address: ");
-	// printAddress(waterLow);
-	// Serial.println();
-
-	// // Show device resolutions - BEFORE
-	// Serial.print("waterHigh  Device Resolution: ");
-	// Serial.print(sensors.getResolution(waterHigh), DEC);
-	// Serial.println();
-	// Serial.print("waterLow   Device Resolution: ");
-	// Serial.print(sensors.getResolution(waterLow), DEC);
-	// Serial.println();
-	// Serial.print("airAmbient Device Resolution: ");
-	// Serial.print(sensors.getResolution(airAmbient), DEC);
-	// Serial.println();
-
-	// // Set the device resolutions to 9 bits
-	// sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
-	// sensors.setResolution(outsideThermometer, TEMPERATURE_PRECISION);
-
-	// // Show device resolutions - AFTER
-	// Serial.print("waterHigh  Device Resolution: ");
-	// Serial.print(sensors.getResolution(waterHigh), DEC);
-	// Serial.println();
-	// Serial.print("waterLow   Device Resolution: ");
-	// Serial.print(sensors.getResolution(waterLow), DEC);
-	// Serial.println();
-	// Serial.print("airAmbient Device Resolution: ");
-	// Serial.print(sensors.getResolution(airAmbient), DEC);
-	// Serial.println();
 
 	for (int index = 0; index < deviceCount; index++)
 	{
@@ -158,16 +113,14 @@ void printTemperature(DeviceAddress deviceAddress)
 	if (tempF < 10)
 		Serial.print(" ");
 	Serial.print(tempF);
-	Serial.print(" F");
+	Serial.println(" F");
 }
 
 // Function to show device info
 void printData(DeviceAddress deviceAddress)
 {
 	GETNAMEOF(devices[index]);
-	Serial.print(" Address: ");
-	printAddress(deviceAddress);
-	Serial.print(" - ");
+	Serial.print(": ");
 	printTemperature(deviceAddress);
 	Serial.println();
 }
@@ -181,11 +134,6 @@ void loop(void)
 	Serial.println("Done.");
 
 	delay(timeDelay);
-
-	// // Show the device info
-	// printData(waterHigh);
-	// printData(waterLow);
-	// printData(airAmbient);
 
 	// Show the device info
 	for (int index = 0; index < deviceCount; index++)
