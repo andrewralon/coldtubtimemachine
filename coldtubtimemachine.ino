@@ -13,8 +13,8 @@ DeviceAddress s1, s2, s3;
 DeviceAddress sensors[] = { { s1, s2, s3 } };
 
 // Setup variables
-float tempC = 0;
-float tempF = 0;
+double tempC = 0;
+double tempF = 0;
 bool led = false;
 const int sensorCount = 2;
 const int timeDelay = 1000;
@@ -41,10 +41,9 @@ void printAddress(DeviceAddress deviceAddress)
 {
   for (uint8_t i = 0; i < 8; i++)
   {
-    // Pad address segment with zero if less than one char
     if (deviceAddress[i] < 16)
     {
-      Serial.print("0");
+      Serial.print("0"); // Pad segment if less than one char wide
     }
     Serial.print(deviceAddress[i], HEX);
   }
@@ -53,9 +52,8 @@ void printAddress(DeviceAddress deviceAddress)
 // Function to print the temperature for a device
 void printTemperature(DeviceAddress deviceAddress)
 {
-  float tempF = dt.getTempF(deviceAddress); // * 100.0) / 100.0;
-  // float tempC = dt.getTempC(deviceAddress);
-  // float tempF = DallasTemperature::toFahrenheit(tempC);
+  tempF = dt.getTempF(deviceAddress); // * 100.0) / 100.0;
+  // tempC = DallasTemperature::toCelsius(tempF);
 
   //  if (tempC > -10 && tempC < 10)
   //  {
@@ -106,7 +104,6 @@ void setup(void)
 
   // Get the addresses for all devices
   oneWire.reset_search();
-
   for (int index = 0; index < sensorCount; index++)
   {
     Serial.print("index: ");
@@ -118,13 +115,9 @@ void setup(void)
 
     if (oneWire.search(sensors[index]))
     {
-      // Show the address found on the bus
+      // Show address and resolution
       Serial.print(" | address: ");
       printAddress(sensors[index]);
-      // printAddress(s1);
-      // Serial.print();
-
-      // Show device resolution
       Serial.print(" | resolution: ");
       Serial.println(dt.getResolution(sensors[index]), DEC);
     }
