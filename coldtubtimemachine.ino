@@ -2,20 +2,18 @@
 #include <LiquidCrystal_I2C.h>
 #include <OneWire.h>
 
-#define GETNAMEOF(name) getnameof(#name, (name))
-#define ONE_WIRE_BUS 2			// Data wire is plugged into Arduino port 2
+#define ONE_WIRE_BUS 2 // Data wire is Arduino port 2
 
-// Setup LCD, OneWire, DallasTemperature, and sensor objects
+// Setup LCD, OneWire, DallasTemperature, sensor objects
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature dt(&oneWire);
-DeviceAddress s1, s2, s3;
-DeviceAddress sensors[] = {{s1, s2, s3}};
+DeviceAddress sensors[3] = {{}};
 
 // Setup variables
-float tempsF[3] = { 0.0 };
-bool led = false;
 const int sensorCount = 2;
+float tempsF[sensorCount] = { 0.0 };
+bool led = false;
 const int timeDelay = 1000;
 const byte degreeSymbol[8] = {
   0b00110,
@@ -28,24 +26,22 @@ const byte degreeSymbol[8] = {
   0b00000
 };
 
-// Function to get the name of a variable
-void getnameof(char *name, int value) // char[] ???
-{
-  // Serial.print("name: %s\tvalue: %d\n", name, value);
-  Serial.print(name);
-}
-
 // Function to show device address
 void printAddress(DeviceAddress sensor)
 {
+  // char address[16] = {""}; // Example: 28BE4D56B5013C8E
   for (uint8_t i = 0; i < 8; i++)
   {
-    if (sensor[i] < 16)
+    if (sensor[i] < 16) // Pad segment if less than one char wide
     {
-      Serial.print("0"); // Pad segment if less than one char wide
+      Serial.print("0");
+      // address += ("0");
     }
     Serial.print(sensor[i], HEX);
+    // address += sensor[i];
   }
+
+  // return address;
 }
 
 // Function to print the temperature for a device
@@ -81,6 +77,7 @@ void setup(void)
     {
       Serial.print(" | address: ");
       printAddress(sensors[i]);
+      // Serial.print(getAddress(sensors[i]));
       Serial.print(" | resolution: ");
       Serial.println(dt.getResolution(sensors[i]), DEC);
     }
