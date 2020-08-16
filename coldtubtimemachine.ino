@@ -2,24 +2,23 @@
 #include <DallasTemperature.h>
 #include <LiquidCrystal_I2C.h>
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-// #include <LiquidCrystal.h>
-// LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 #define GETNAMEOF(name) getnameof(#name, (name))
 #define ONE_WIRE_BUS 2			// Data wire is plugged into Arduino port 2
 
-// Setup a OneWire instance, pass it to DallasTemperature, and create sensor objects
+// Setup LCD, OneWire, DallasTemperature, and sensor objects
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature dt(&oneWire);
 DeviceAddress s1, s2, s3;
 DeviceAddress sensors[] = { { s1, s2, s3 } };
 
-const int sensorCount = 2;
-const int timeDelay = 1000;
+// Setup variables
 float tempC = 0;
 float tempF = 0;
 bool led = false;
+const int sensorCount = 2;
+const int timeDelay = 1000;
 const byte degreeSymbol[8] = {
   0b00110,
   0b01001,
@@ -55,12 +54,9 @@ void printAddress(DeviceAddress deviceAddress)
 // Function to print the temperature for a device
 void printTemperature(DeviceAddress deviceAddress)
 {
+  float tempF = dt.getTempF(deviceAddress); // * 100.0) / 100.0;
   // float tempC = dt.getTempC(deviceAddress);
   // float tempF = DallasTemperature::toFahrenheit(tempC);
-  float tempF = dt.getTempF(deviceAddress); // * 100.0) / 100.0;
-  
-  // lcd.home();
-  // lcd.setCursor(0, 0);
 
   //  if (tempC > -10 && tempC < 10)
   //  {
