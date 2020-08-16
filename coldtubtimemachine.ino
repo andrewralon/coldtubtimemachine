@@ -10,11 +10,10 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature dt(&oneWire);
 DeviceAddress s1, s2, s3;
-DeviceAddress sensors[] = { { s1, s2, s3 } };
+DeviceAddress sensors[] = {{s1, s2, s3}};
 
 // Setup variables
-double tempC = 0;
-double tempF = 0;
+float tempsF[3] = { 0.0 };
 bool led = false;
 const int sensorCount = 2;
 const int timeDelay = 1000;
@@ -37,46 +36,22 @@ void getnameof(char *name, int value) // char[] ???
 }
 
 // Function to show device address
-void printAddress(DeviceAddress deviceAddress)
+void printAddress(DeviceAddress sensor)
 {
   for (uint8_t i = 0; i < 8; i++)
   {
-    if (deviceAddress[i] < 16)
+    if (sensor[i] < 16)
     {
       Serial.print("0"); // Pad segment if less than one char wide
     }
-    Serial.print(deviceAddress[i], HEX);
+    Serial.print(sensor[i], HEX);
   }
 }
 
 // Function to print the temperature for a device
-void printTemperature(DeviceAddress deviceAddress)
+float getTemperature(DeviceAddress sensor)
 {
-  tempF = dt.getTempF(deviceAddress); // * 100.0) / 100.0;
-  // tempC = DallasTemperature::toCelsius(tempF);
-
-  //  if (tempC > -10 && tempC < 10)
-  //  {
-  //    // Serial.print(" ");
-  //    // lcd.print(" ");
-  //  }
-  //  Serial.print(tempC);
-  //  lcd.print(tempC);
-  //  Serial.print(" C / ");
-  //  lcd.print(" C");
-  //  lcd.setCursor(0, 1);
-
-  if (tempF > -10 && tempF < 10)
-  {
-    Serial.print(" ");
-    lcd.print(" ");
-  }
-  Serial.print(tempF);
-  lcd.print(tempF, 1);
-  // Serial.print((char)degreeSymbol);
-  lcd.print((char)0);
-  Serial.print("*F");
-  lcd.print("F");
+  return dt.getTempF(sensor);
 }
 
 // Setup - Initialize the sensors here
@@ -95,31 +70,19 @@ void setup(void)
   Serial.print("Locating devices.... Found ");
   Serial.println(dt.getDeviceCount(), DEC);
 
-  // Get parasite power requirements
-  Serial.print("Parasite power: ");
-  if (dt.isParasitePowerMode())
-    Serial.println("ON");
-  else
-    Serial.println("OFF");
-
-  // Get the addresses for all devices
+  // Get device addresses and resolutions
   oneWire.reset_search();
-  for (int index = 0; index < sensorCount; index++)
+  for (int i = 0; i < sensorCount; i++)
   {
-    Serial.print("index: ");
-    Serial.print(index);
+    Serial.print("i: ");
+    Serial.print(i);
 
-    // Serial.print(" | name: ");
-    // GETNAMEOF(sensors[index]);
-    // Serial.print();
-
-    if (oneWire.search(sensors[index]))
+    if (oneWire.search(sensors[i]))
     {
-      // Show address and resolution
       Serial.print(" | address: ");
-      printAddress(sensors[index]);
+      printAddress(sensors[i]);
       Serial.print(" | resolution: ");
-      Serial.println(dt.getResolution(sensors[index]), DEC);
+      Serial.println(dt.getResolution(sensors[i]), DEC);
     }
     else
     {
@@ -131,20 +94,34 @@ void setup(void)
 // Main - Get and show temperatures
 void loop(void)
 {
-  // Request and show temperatures from all bus devices
+  // Get temperatures
   dt.requestTemperatures();
-  lcd.clear();
-  for (int index = 0; index < sensorCount; index++)
+  for (int i = 0; i < sensorCount; i++)
   {
-    lcd.setCursor(0, index);
-    // GETNAMEOF(sensors[index]);
-    Serial.print(index);
-    lcd.print(index);
+    tempsF[i] = dt.getTempF(sensors[i]);
+  }
+
+  // Display temperatures on two rows of a 16x2 display
+  lcd.clear();
+  for (int i = 0; i < 2; i++)
+  {
+    lcd.setCursor(0, i);
+    Serial.print(i);
+    lcd.print(i);
     Serial.print(": ");
     lcd.print(": ");
-    printTemperature(sensors[index]);
-    Serial.println();
-    // delay(50);
+
+    if (tempsF[i] > -10 && tempsF[i] < 10)
+    {
+      Serial.print(" ");
+      lcd.print(" ");
+    }
+
+    Serial.print(tempsF[i]);
+    lcd.print(tempsF[i], 1); // Round to one decimal place; 76.17 -> 76.2
+    Serial.println(" F"); // Replace with degree symbol
+    lcd.print((char)0);
+    lcd.print("F");
   }
 
   if (led == true)
