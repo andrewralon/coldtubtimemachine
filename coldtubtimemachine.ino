@@ -6,8 +6,11 @@
 const char degreeSymbol[] = "\xC2\xB0";
 const int sensorCount = 2;
 const int tempSamples = 10;
+int column = 0;
+int row = 0;
 float temps[sensorCount] = {0};
 float tempStart = 0;
+float tempAverage = 0;
 float tempDelta = 0;
 bool isLedOn = false;
 unsigned long updateTimeLast = 0; // Timestamp of last update
@@ -44,12 +47,17 @@ void setup(void)
   lcd.init();
   lcd.backlight();
 
-  // Create the degree symbol in the LCD display
-  byte degreeSymbolLcd[8] = {
+  // Create degree and arrow symbols in the LCD display
+  byte charDegree[8] = {
     0b00110, 0b01001, 0b01001, 0b00110,
     0b00000, 0b00000, 0b00000, 0b00000
   };
-  lcd.createChar(0, degreeSymbolLcd);
+  lcd.createChar(0, charDegree);
+  byte charArrow[8] = {
+    0b00000, 0b00100, 0b00010, 0b11111,
+    0b00010, 0b00100, 0b00000, 0b00000
+  };
+  lcd.createChar(1, charArrow);
 
   // Get all devices on the bus
   Serial.print(F("Locating devices.... Found "));
@@ -89,7 +97,7 @@ void loop(void)
 
     // Get temperatures
     dt.requestTemperatures();
-    float tempAverage = 0;
+    tempAverage = 0;
     for (int i = 0; i < sensorCount; i++)
     {
       temps[i] = dt.getTempF(sensors[i]);
@@ -97,11 +105,8 @@ void loop(void)
     }
     tempAverage /= sensorCount;
 
-    // Display temperatures on two rows of a 16x2 display
-    lcd.clear();
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < sensorCount; i++)
     {
-      lcd.setCursor(0, i);
       Serial.print(i);
       Serial.print(F(": "));
       if (temps[i] >= 0 && temps[i] < 10)
@@ -119,40 +124,71 @@ void loop(void)
     }
     tempDelta = tempAverage - tempStart;
 
+    // Display temperatures on two rows of a 16x2 display
+    lcd.clear();
+    row = 0;
+    column = 1;
+    lcd.setCursor(column, row);
+    for (int i = 0; i < sensorCount; i++)
+    {
+      lcd.print(i);
+      lcd.print(":");
+      if (temps[i] >= 0 && temps[i] < 10)
+      {
+        column++; // Pad with a space
+      }
+      lcd.print(temps[i], 1);
+      lcd.print(" ");
+    }
+
     Serial.print(F("Start:   "));
+    row = 1;
+    column = 0;
+    if (tempStart >= 0 && tempStart < 10)
+    {
+      column++; // Pad with a space
+      Serial.print(F(" "));
+    }
     Serial.print(tempStart, 1);
     Serial.print(degreeSymbol);
     Serial.println(F("F"));
-
-    lcd.setCursor(0, 0); // Column 1, Row 1
+    lcd.setCursor(column, row);
     lcd.print(tempStart, 1);
-
-    lcd.setCursor(4, 0);
-    lcd.print(">");
+    lcd.setCursor(4, row);
+    lcd.print((char)1);
 
     Serial.print(F("Average: "));
+    column = 5;
+    if (tempAverage >= 0 && tempAverage < 10)
+    {
+      column++; // Pad with a space
+      Serial.print(F(" "));
+    }
     Serial.print(tempAverage, 1);
     Serial.print(degreeSymbol);
     Serial.println(F("F"));
-
-    lcd.setCursor(5, 0);
+    lcd.setCursor(column, row);
     lcd.print(tempAverage, 1);
     lcd.print(":");
 
     Serial.print(F("Delta:   "));
-    int cursorPositionDelta = 10;
+    column = 10;
     if (tempDelta >= 0 && tempDelta < 10)
     {
-      cursorPositionDelta++; // Pad with a space
+      column++; // Pad with a space
       Serial.print(F(" "));
     }
     Serial.print(tempDelta, 1);
     Serial.print(degreeSymbol);
     Serial.println(F("F"));
-
-    lcd.setCursor(cursorPositionDelta, 0);
+    lcd.setCursor(column, row);
     lcd.print(tempDelta, 1);
     lcd.print((char)0);
     lcd.print("F");
+
+    column = 0;
+    lcd.setCursor(column, row);
+
+
   }
 }
