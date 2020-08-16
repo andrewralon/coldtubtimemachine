@@ -1,9 +1,10 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
-// #include <LiquidCrystal_I2C.h>
-// LiquidCrystal_I2C lcd(0x27, 16, 2);
-#include <LiquidCrystal.h>
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+// #include <LiquidCrystal.h>
+// LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 #define GETNAMEOF(name) getnameof(#name, (name))
 #define ONE_WIRE_BUS 2			// Data wire is plugged into Arduino port 2
@@ -19,6 +20,16 @@ const int timeDelay = 1000;
 float tempC = 0;
 float tempF = 0;
 bool led = false;
+const byte degreeSymbol[8] = {
+  0b00110,
+  0b01001,
+  0b01001,
+  0b00110,
+  0b00000,
+  0b00000,
+  0b00000,
+  0b00000
+};
 
 // Function to get the name of a variable
 void getnameof(char *name, int value) // char[] ???
@@ -46,9 +57,10 @@ void printTemperature(DeviceAddress deviceAddress)
 {
   // float tempC = dt.getTempC(deviceAddress);
   // float tempF = DallasTemperature::toFahrenheit(tempC);
-  float tempF = dt.getTempF(deviceAddress);
-
-  lcd.home();
+  float tempF = dt.getTempF(deviceAddress); // * 100.0) / 100.0;
+  
+  // lcd.home();
+  // lcd.setCursor(0, 0);
 
   //  if (tempC > -10 && tempC < 10)
   //  {
@@ -67,9 +79,11 @@ void printTemperature(DeviceAddress deviceAddress)
     lcd.print(" ");
   }
   Serial.print(tempF);
-  lcd.print(tempF);
-  Serial.print(" F");
-  lcd.print(" F");
+  lcd.print(tempF, 1);
+  // Serial.print((char)degreeSymbol);
+  lcd.print((char)0);
+  Serial.print("*F");
+  lcd.print("F");
 }
 
 // Setup - Initialize the sensors here
@@ -82,8 +96,9 @@ void setup(void)
   dt.begin();
   lcd.init();     //initialize the lcd
   lcd.backlight(); //open the backlight
+  lcd.createChar(0, degreeSymbol);
   // lcd.begin(16, 2);
-  
+
   // Get all devices on the bus
   Serial.print("Locating devices.... Found ");
   Serial.println(dt.getDeviceCount(), DEC);
