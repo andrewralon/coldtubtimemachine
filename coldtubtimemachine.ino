@@ -89,10 +89,9 @@ void setup(void)
   Serial.println("O HAI");
   pinMode(LED_BUILTIN, OUTPUT);
   dt.begin();
-  lcd.init();     //initialize the lcd
-  lcd.backlight(); //open the backlight
+  lcd.init();
+  lcd.backlight();
   lcd.createChar(0, degreeSymbol);
-  // lcd.begin(16, 2);
 
   // Get all devices on the bus
   Serial.print("Locating devices.... Found ");
