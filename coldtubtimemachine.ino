@@ -83,7 +83,7 @@ void setup(void)
     }
     else
     {
-      Serial.println("*** Address not found ***");
+      Serial.println(" | *** Address not found ***");
     }
   }
 }
