@@ -2,29 +2,16 @@
 #include <LiquidCrystal_I2C.h>
 #include <OneWire.h>
 
-#define ONE_WIRE_BUS 2 // Data wire is Arduino port 2
+// Setup variables
+const int sensorCount = 2;
+float tempsF[sensorCount] = { 0 };
+bool led = false;
 
 // Setup LCD, OneWire, DallasTemperature, sensor objects
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-OneWire oneWire(ONE_WIRE_BUS);
+OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
-DeviceAddress sensors[3] = {{}};
-
-// Setup variables
-const int sensorCount = 2;
-float tempsF[sensorCount] = { 0.0 };
-bool led = false;
-const int timeDelay = 1000;
-const byte degreeSymbol[8] = {
-  0b00110,
-  0b01001,
-  0b01001,
-  0b00110,
-  0b00000,
-  0b00000,
-  0b00000,
-  0b00000
-};
+DeviceAddress sensors[sensorCount] = {{}};
 
 // Function to show device address
 void printAddress(DeviceAddress sensor)
@@ -35,19 +22,9 @@ void printAddress(DeviceAddress sensor)
     if (sensor[i] < 16) // Pad segment if less than one char wide
     {
       Serial.print("0");
-      // address += ("0");
     }
     Serial.print(sensor[i], HEX);
-    // address += sensor[i];
   }
-
-  // return address;
-}
-
-// Function to print the temperature for a device
-float getTemperature(DeviceAddress sensor)
-{
-  return dt.getTempF(sensor);
 }
 
 // Setup - Initialize the sensors here
@@ -60,6 +37,18 @@ void setup(void)
   dt.begin();
   lcd.init();
   lcd.backlight();
+
+  // Create the degree symbol in the LCD display
+  byte degreeSymbol[8] = {
+    0b00110,
+    0b01001,
+    0b01001,
+    0b00110,
+    0b00000,
+    0b00000,
+    0b00000,
+    0b00000
+  };
   lcd.createChar(0, degreeSymbol);
 
   // Get all devices on the bus
@@ -132,5 +121,5 @@ void loop(void)
     digitalWrite(LED_BUILTIN, HIGH);
   }
 
-  delay(timeDelay);
+  delay(1000);
 }
