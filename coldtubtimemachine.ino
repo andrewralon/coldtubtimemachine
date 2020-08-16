@@ -11,6 +11,11 @@ int tempsSampledEnd = 0;
 float temps[sensorCount] = {0};
 float tempsStart[tempSamples] = {0};
 float tempsEnd[tempSamples] = {0};
+float tempStart = 0;
+float tempEnd = 0;
+float tempStartTotal = 0;
+float tempEndTotal = 0;
+float tempDelta = 0;
 bool isLedOn = false;
 unsigned long updateTimeLast = 0; // Timestamp of last update
 const int updateDelay = 1000; // Time in ms between updates
@@ -99,18 +104,13 @@ void loop(void)
 
     // Get temperatures
     dt.requestTemperatures();
-    float average = 0;
+    float tempAverage = 0;
     for (int i = 0; i < sensorCount; i++)
     {
       temps[i] = dt.getTempF(sensors[i]);
-      average += temps[i];
+      tempAverage += temps[i];
     }
-    average /= sensorCount;
-
-    if (tempsSampledStart < 10)
-    {
-      tempsStart[tempsSampledStart++] = average;
-    }
+    tempAverage /= sensorCount;
 
     // Display temperatures on two rows of a 16x2 display
     lcd.clear();
@@ -118,32 +118,75 @@ void loop(void)
     {
       lcd.setCursor(0, i);
       Serial.print(i);
-      lcd.print(i);
       Serial.print(F(": "));
-      lcd.print(": ");
 
       if (temps[i] > -10 && temps[i] < 10)
       {
         Serial.print(F(" ")); // Pad temperature spacing
-        lcd.print(" ");
+        // lcd.print(" ");
       }
 
       // Round to one decimal place; 76.17 -> 76.2
       Serial.print(temps[i], 1);
-      lcd.print(temps[i], 1);
+      // lcd.print(temps[i], 1);
       Serial.print(degreeSymbol);
-      lcd.print((char)0); // Degree symbol
+      // lcd.print((char)0); // Degree symbol
       Serial.println(F("F"));
-      lcd.print("F");
+      // lcd.print("F");
     }
 
-    lcd.setCursor(10, 0); // Column 10, Row 0 
+    //    lcd.setCursor(0, 1);
+    //    lcd.print("MACY & JACKSON");
+
     Serial.print(F("Average: "));
-    Serial.print(average, 1);
-    lcd.print(average, 1);
+    Serial.print(tempAverage, 1);
     Serial.print(degreeSymbol);
-    lcd.print((char)0);
     Serial.println(F("F"));
+
+    if (tempsSampledStart < tempSamples)
+    {
+      tempsStart[tempsSampledStart++] = tempAverage;
+      tempStartTotal += tempAverage;
+      tempStart = tempAverage;
+    }
+    else if (tempsSampledStart == tempSamples)
+    {
+      tempStart = tempStartTotal / tempsSampledStart++; // Increment so it runs once
+    }
+
+    tempDelta = tempAverage - tempStart;
+
+    Serial.print(F("Start:   "));
+    Serial.print(tempStart, 1);
+    Serial.print(degreeSymbol);
+    Serial.println(F("F"));
+
+    Serial.print(F("Delta:   "));
+    Serial.print(tempDelta, 1);
+    Serial.print(degreeSymbol);
+    Serial.println(F("F"));
+
+    lcd.setCursor(0, 0); // Column 1, Row 1
+    lcd.print(tempStart, 1);
+
+    lcd.setCursor(4, 0);
+    lcd.print(">");
+
+    lcd.setCursor(5, 0);
+    lcd.print(tempAverage, 1);
+    lcd.print(":");
+
+    if (tempDelta >= 0 && tempDelta < 10)
+    {
+      lcd.setCursor(11, 0); // Pad with a space
+    }
+    else
+    {
+      lcd.setCursor(10, 0);
+    }
+
+    lcd.print(tempDelta, 1);
+    lcd.print((char)0);
     lcd.print("F");
   }
 }
