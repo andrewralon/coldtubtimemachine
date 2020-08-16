@@ -119,7 +119,7 @@ void loop(void)
 
     Serial.print(tempsF[i]);
     lcd.print(tempsF[i], 1); // Round to one decimal place; 76.17 -> 76.2
-    Serial.println(" F"); // Replace with degree symbol
+    Serial.println(" F"); // TODO - Replace with degree symbol
     lcd.print((char)0);
     lcd.print("F");
   }
