@@ -49,13 +49,25 @@ void setup(void)
 
   // Create degree and arrow symbols in the LCD display
   byte charDegree[8] = {
-    0b00110, 0b01001, 0b01001, 0b00110,
-    0b00000, 0b00000, 0b00000, 0b00000
+    0b00110, 
+    0b01001, 
+    0b01001, 
+    0b00110,
+    0b00000, 
+    0b00000, 
+    0b00000, 
+    0b00000
   };
   lcd.createChar(0, charDegree);
   byte charArrow[8] = {
-    0b00000, 0b00100, 0b00010, 0b11111,
-    0b00010, 0b00100, 0b00000, 0b00000
+    0b00000, 
+    0b00100, 
+    0b00010, 
+    0b11111,
+    0b00010, 
+    0b00100, 
+    0b00000, 
+    0b00000
   };
   lcd.createChar(1, charArrow);
 
@@ -185,10 +197,5 @@ void loop(void)
     lcd.print(tempDelta, 1);
     lcd.print((char)0);
     lcd.print("F");
-
-    column = 0;
-    lcd.setCursor(column, row);
-
-
   }
 }
