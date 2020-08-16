@@ -1,7 +1,6 @@
-#include <OneWire.h>
 #include <DallasTemperature.h>
 #include <LiquidCrystal_I2C.h>
-
+#include <OneWire.h>
 
 #define GETNAMEOF(name) getnameof(#name, (name))
 #define ONE_WIRE_BUS 2			// Data wire is plugged into Arduino port 2
