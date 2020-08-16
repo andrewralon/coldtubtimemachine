@@ -176,15 +176,13 @@ void loop(void)
     lcd.print(tempAverage, 1);
     lcd.print(":");
 
+    int cursorPositionDelta = 10;
     if (tempDelta >= 0 && tempDelta < 10)
     {
-      lcd.setCursor(11, 0); // Pad with a space
-    }
-    else
-    {
-      lcd.setCursor(10, 0);
+      cursorPositionDelta++; // Pad with a space
     }
 
+    lcd.setCursor(cursorPositionDelta, 0);
     lcd.print(tempDelta, 1);
     lcd.print((char)0);
     lcd.print("F");
