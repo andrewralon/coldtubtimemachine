@@ -3,8 +3,14 @@
 #include <OneWire.h>
 
 // Setup variables
+const char degreeSymbol[] = "\xC2\xB0";
 const int sensorCount = 2;
-float tempsF[sensorCount] = {0};
+const int tempSamples = 10;
+int tempsSampledStart = 0;
+int tempsSampledEnd = 0;
+float temps[sensorCount] = {0};
+float tempsStart[tempSamples] = {0};
+float tempsEnd[tempSamples] = {0};
 bool isLedOn = false;
 unsigned long updateTimeLast = 0; // Timestamp of last update
 const int updateDelay = 1000; // Time in ms between updates
@@ -41,7 +47,7 @@ void setup(void)
   lcd.backlight();
 
   // Create the degree symbol in the LCD display
-  byte degreeSymbol[8] = {
+  byte degreeSymbolLcd[8] = {
     0b00110,
     0b01001,
     0b01001,
@@ -51,7 +57,7 @@ void setup(void)
     0b00000,
     0b00000
   };
-  lcd.createChar(0, degreeSymbol);
+  lcd.createChar(0, degreeSymbolLcd);
 
   // Get all devices on the bus
   Serial.print(F("Locating devices.... Found "));
@@ -93,9 +99,17 @@ void loop(void)
 
     // Get temperatures
     dt.requestTemperatures();
+    float average = 0;
     for (int i = 0; i < sensorCount; i++)
     {
-      tempsF[i] = dt.getTempF(sensors[i]);
+      temps[i] = dt.getTempF(sensors[i]);
+      average += temps[i];
+    }
+    average /= sensorCount;
+
+    if (tempsSampledStart < 10)
+    {
+      tempsStart[tempsSampledStart++] = average;
     }
 
     // Display temperatures on two rows of a 16x2 display
@@ -108,19 +122,28 @@ void loop(void)
       Serial.print(F(": "));
       lcd.print(": ");
 
-      if (tempsF[i] > -10 && tempsF[i] < 10)
+      if (temps[i] > -10 && temps[i] < 10)
       {
         Serial.print(F(" ")); // Pad temperature spacing
         lcd.print(" ");
       }
 
       // Round to one decimal place; 76.17 -> 76.2
-      Serial.print(tempsF[i], 1);
-      lcd.print(tempsF[i], 1);
-      Serial.print("\xC2\xB0"); // Degree symbol
+      Serial.print(temps[i], 1);
+      lcd.print(temps[i], 1);
+      Serial.print(degreeSymbol);
       lcd.print((char)0); // Degree symbol
-      Serial.println(F("F")); // TODO - Replace with degree symbol
+      Serial.println(F("F"));
       lcd.print("F");
     }
+
+    lcd.setCursor(10, 0); // Column 10, Row 0 
+    Serial.print(F("Average: "));
+    Serial.print(average, 1);
+    lcd.print(average, 1);
+    Serial.print(degreeSymbol);
+    lcd.print((char)0);
+    Serial.println(F("F"));
+    lcd.print("F");
   }
 }
