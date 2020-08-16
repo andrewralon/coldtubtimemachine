@@ -6,15 +6,8 @@
 const char degreeSymbol[] = "\xC2\xB0";
 const int sensorCount = 2;
 const int tempSamples = 10;
-int tempsSampledStart = 0;
-int tempsSampledEnd = 0;
 float temps[sensorCount] = {0};
-float tempsStart[tempSamples] = {0};
-float tempsEnd[tempSamples] = {0};
 float tempStart = 0;
-float tempEnd = 0;
-float tempStartTotal = 0;
-float tempEndTotal = 0;
 float tempDelta = 0;
 bool isLedOn = false;
 unsigned long updateTimeLast = 0; // Timestamp of last update
@@ -43,7 +36,7 @@ void printAddress(DeviceAddress sensor)
 // Setup - Initialize the sensors here
 void setup(void)
 {
-  // Start serial port, on-board LED, sensors, and LCD
+  // Start serial port, on-board LED, sensors, LCD
   Serial.begin(9600);
   Serial.println(F("O HAI"));
   pinMode(LED_BUILTIN, OUTPUT);
@@ -53,14 +46,8 @@ void setup(void)
 
   // Create the degree symbol in the LCD display
   byte degreeSymbolLcd[8] = {
-    0b00110,
-    0b01001,
-    0b01001,
-    0b00110,
-    0b00000,
-    0b00000,
-    0b00000,
-    0b00000
+    0b00110, 0b01001, 0b01001, 0b00110,
+    0b00000, 0b00000, 0b00000, 0b00000
   };
   lcd.createChar(0, degreeSymbolLcd);
 
@@ -79,13 +66,12 @@ void setup(void)
     {
       Serial.print(F(" | address: "));
       printAddress(sensors[i]);
-      // Serial.print(F(getAddress(sensors[i])));
       Serial.print(F(" | resolution: "));
       Serial.println(dt.getResolution(sensors[i]), DEC);
     }
     else
     {
-      Serial.println(F(" | *** Address not found ***"));
+      Serial.println(F(" | *** address not found ***"));
     }
   }
 }
@@ -98,8 +84,7 @@ void loop(void)
   {
     updateTimeLast = millis();
 
-    // Toggle LED on and off
-    isLedOn = !isLedOn;
+    isLedOn = !isLedOn; // Toggle LED on and off
     digitalWrite(LED_BUILTIN, isLedOn ? HIGH : LOW);
 
     // Get temperatures
@@ -119,50 +104,23 @@ void loop(void)
       lcd.setCursor(0, i);
       Serial.print(i);
       Serial.print(F(": "));
-
-      if (temps[i] > -10 && temps[i] < 10)
+      if (temps[i] >= 0 && temps[i] < 10)
       {
         Serial.print(F(" ")); // Pad temperature spacing
-        // lcd.print(" ");
       }
-
-      // Round to one decimal place; 76.17 -> 76.2
       Serial.print(temps[i], 1);
-      // lcd.print(temps[i], 1);
       Serial.print(degreeSymbol);
-      // lcd.print((char)0); // Degree symbol
       Serial.println(F("F"));
-      // lcd.print("F");
     }
 
-    //    lcd.setCursor(0, 1);
-    //    lcd.print("MACY & JACKSON");
-
-    Serial.print(F("Average: "));
-    Serial.print(tempAverage, 1);
-    Serial.print(degreeSymbol);
-    Serial.println(F("F"));
-
-    if (tempsSampledStart < tempSamples)
+    if (tempStart == 0)
     {
-      tempsStart[tempsSampledStart++] = tempAverage;
-      tempStartTotal += tempAverage;
       tempStart = tempAverage;
     }
-    else if (tempsSampledStart == tempSamples)
-    {
-      tempStart = tempStartTotal / tempsSampledStart++; // Increment so it runs once
-    }
-
     tempDelta = tempAverage - tempStart;
 
     Serial.print(F("Start:   "));
     Serial.print(tempStart, 1);
-    Serial.print(degreeSymbol);
-    Serial.println(F("F"));
-
-    Serial.print(F("Delta:   "));
-    Serial.print(tempDelta, 1);
     Serial.print(degreeSymbol);
     Serial.println(F("F"));
 
@@ -172,15 +130,25 @@ void loop(void)
     lcd.setCursor(4, 0);
     lcd.print(">");
 
+    Serial.print(F("Average: "));
+    Serial.print(tempAverage, 1);
+    Serial.print(degreeSymbol);
+    Serial.println(F("F"));
+
     lcd.setCursor(5, 0);
     lcd.print(tempAverage, 1);
     lcd.print(":");
 
+    Serial.print(F("Delta:   "));
     int cursorPositionDelta = 10;
     if (tempDelta >= 0 && tempDelta < 10)
     {
       cursorPositionDelta++; // Pad with a space
+      Serial.print(F(" "));
     }
+    Serial.print(tempDelta, 1);
+    Serial.print(degreeSymbol);
+    Serial.println(F("F"));
 
     lcd.setCursor(cursorPositionDelta, 0);
     lcd.print(tempDelta, 1);
