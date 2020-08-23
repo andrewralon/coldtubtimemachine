@@ -4,7 +4,7 @@
 
 // Setup variables
 const char degreeSymbol[] = "\xC2\xB0";
-const int sensorCount = 2;
+const int sensorCount = 3;
 const int tempSamples = 10;
 int column = 0;
 int row = 0;
@@ -49,24 +49,24 @@ void setup(void)
 
   // Create degree and arrow symbols in the LCD display
   byte charDegree[8] = {
-    0b00110, 
-    0b01001, 
-    0b01001, 
     0b00110,
-    0b00000, 
-    0b00000, 
-    0b00000, 
+    0b01001,
+    0b01001,
+    0b00110,
+    0b00000,
+    0b00000,
+    0b00000,
     0b00000
   };
   lcd.createChar(0, charDegree);
   byte charArrow[8] = {
-    0b00000, 
-    0b00100, 
-    0b00010, 
+    0b00000,
+    0b00100,
+    0b00010,
     0b11111,
-    0b00010, 
-    0b00100, 
-    0b00000, 
+    0b00010,
+    0b00100,
+    0b00000,
     0b00000
   };
   lcd.createChar(1, charArrow);
@@ -86,8 +86,9 @@ void setup(void)
     {
       Serial.print(F(" | address: "));
       printAddress(sensors[i]);
-      Serial.print(F(" | resolution: "));
-      Serial.println(dt.getResolution(sensors[i]), DEC);
+      // Serial.print(F(" | resolution: "));
+      // Serial.print(dt.getResolution(sensors[i]), DEC);
+      Serial.println();
     }
     else
     {
@@ -107,44 +108,49 @@ void loop(void)
     isLedOn = !isLedOn; // Toggle LED on and off
     digitalWrite(LED_BUILTIN, isLedOn ? HIGH : LOW);
 
-    // Get temperatures
+    // Get temperature average from first two sensors (water)
     dt.requestTemperatures();
     tempAverage = 0;
     for (int i = 0; i < sensorCount; i++)
     {
       temps[i] = dt.getTempF(sensors[i]);
-      tempAverage += temps[i];
-    }
-    tempAverage /= sensorCount;
-
-    for (int i = 0; i < sensorCount; i++)
-    {
-      Serial.print(i);
-      Serial.print(F(": "));
-      if (temps[i] >= 0 && temps[i] < 10)
+      if (i < 2)
       {
-        Serial.print(F(" ")); // Pad temperature spacing
+        tempAverage += temps[i];
       }
-      Serial.print(temps[i], 1);
-      Serial.print(degreeSymbol);
-      Serial.println(F("F"));
     }
+    tempAverage /= 2;
 
     if (tempStart == 0)
     {
+      // CSV header row
+      Serial.println(F("Sensor1,Sensor2,Sensor3,Start,Current,Delta"));
       tempStart = tempAverage;
     }
     tempDelta = tempAverage - tempStart;
 
+    // CSV data rows
+    for (int i = 0; i < sensorCount; i++)
+    {
+      Serial.print(temps[i], 1);
+      Serial.print(F(","));
+    }
+    Serial.print(tempStart, 1);
+    Serial.print(F(","));
+    Serial.print(tempAverage, 1);
+    Serial.print(F(","));
+    Serial.println(tempDelta, 1);
+
     // Display temperatures on two rows of a 16x2 display
+    // Example:
+    //  Row 0: 49.9 50.1 80.5
+    //  Row 1: 50.0>52.2: 2.2*F
     lcd.clear();
     row = 0;
-    column = 1;
+    column = 0;
     lcd.setCursor(column, row);
     for (int i = 0; i < sensorCount; i++)
     {
-      lcd.print(i);
-      lcd.print(":");
       if (temps[i] >= 0 && temps[i] < 10)
       {
         column++; // Pad with a space
@@ -153,46 +159,31 @@ void loop(void)
       lcd.print(" ");
     }
 
-    Serial.print(F("Start:   "));
     row = 1;
     column = 0;
     if (tempStart >= 0 && tempStart < 10)
     {
       column++; // Pad with a space
-      Serial.print(F(" "));
     }
-    Serial.print(tempStart, 1);
-    Serial.print(degreeSymbol);
-    Serial.println(F("F"));
     lcd.setCursor(column, row);
     lcd.print(tempStart, 1);
     lcd.setCursor(4, row);
     lcd.print((char)1);
 
-    Serial.print(F("Average: "));
     column = 5;
     if (tempAverage >= 0 && tempAverage < 10)
     {
       column++; // Pad with a space
-      Serial.print(F(" "));
     }
-    Serial.print(tempAverage, 1);
-    Serial.print(degreeSymbol);
-    Serial.println(F("F"));
     lcd.setCursor(column, row);
     lcd.print(tempAverage, 1);
     lcd.print(":");
 
-    Serial.print(F("Delta:   "));
     column = 10;
     if (tempDelta >= 0 && tempDelta < 10)
     {
       column++; // Pad with a space
-      Serial.print(F(" "));
     }
-    Serial.print(tempDelta, 1);
-    Serial.print(degreeSymbol);
-    Serial.println(F("F"));
     lcd.setCursor(column, row);
     lcd.print(tempDelta, 1);
     lcd.print((char)0);
