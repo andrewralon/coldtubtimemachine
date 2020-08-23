@@ -143,21 +143,18 @@ void loop(void)
 
     // Display temperatures on two rows of a 16x2 display
     // Example:
-    //  Row 0: 49.9 50.1 80.5
-    //  Row 1: 50.0>52.2: 2.2*F
+    //  Row 0: 51.9 52.3 80.5 e
+    //  Row 1: 50.0>52.1: 2.1*F
     lcd.clear();
     row = 0;
     column = 0;
     lcd.setCursor(column, row);
-    for (int i = 0; i < sensorCount; i++)
-    {
-      if (temps[i] >= 0 && temps[i] < 10)
-      {
-        column++; // Pad with a space
-      }
-      lcd.print(temps[i], 1);
-      lcd.print(" ");
-    }
+    lcd.print(temps[0], 1);
+    lcd.print(" ");
+    lcd.print(temps[1], 1);
+    lcd.print(" ");
+    lcd.print(temps[2], 1);
+    lcd.print("e");
 
     row = 1;
     column = 0;
