@@ -158,8 +158,7 @@ void loop(void)
     lcd.print(temps[0], 1);
     lcd.print(" ");
     // Sensor2 (water)
-    column = 5;
-    if (temps[1] < 100) column++;
+    column = 6;
     lcd.setCursor(column, row);
     lcd.print(temps[1], 1);
     // Sensor3 (air)
