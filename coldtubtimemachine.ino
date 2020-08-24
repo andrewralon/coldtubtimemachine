@@ -146,42 +146,48 @@ void loop(void)
     Serial.println(tempDelta, 1);
 
     // Display temperatures on 16x2 display
-    //  Row 0: 51.9 52.3  80.5e
-    //  Row 1: MM:SS 52.1  2.1°
+    //  Row 0: 51.9  52.3  80.5
+    //  Row 1: 52.1  2.1° 01:23
     lcd.clear();
 
     // Row 0
+    // Sensor1 (water)
     row = 0;
     column = 0;
     lcd.setCursor(column, row);
     lcd.print(temps[0], 1);
     lcd.print(" ");
+    // Sensor2 (water)
+    column = 5;
+    if (temps[1] < 100) column++;
+    lcd.setCursor(column, row);
     lcd.print(temps[1], 1);
-    column = 10;
+    // Sensor3 (air)
+    column = 11;
     if (temps[2] < 100) column++;
     lcd.setCursor(column, row);
     lcd.print(temps[2], 1);
-    lcd.print("e");
 
     // Row 1
+    // Current water temperature (average of first two)
     row = 1;
     column = 0;
+    if (tempAverage >= 0 && tempAverage < 10) column++;
+    lcd.setCursor(column, row);
+    lcd.print(tempAverage, 1);
+    // Temperature change (current - starting)
+    column = 5;
+    if (tempDelta >= 0 && tempDelta < 10) column++;
+    lcd.setCursor(column, row);
+    lcd.print(tempDelta, 1);
+    lcd.print((char)0);
+    // Time elapsed (MM:SS)
+    column = 11;
     lcd.setCursor(column, row);
     if (durMM < 10) lcd.print("0");
     lcd.print(durMM);
     lcd.print(":");
     if (durSS < 10) lcd.print("0");
     lcd.print(durSS);
-
-    column = 6;
-    if (tempAverage >= 0 && tempAverage < 10) column++;
-    lcd.setCursor(column, row);
-    lcd.print(tempAverage, 1);
-
-    column = 11;
-    if (tempDelta >= 0 && tempDelta < 10) column++;
-    lcd.setCursor(column, row);
-    lcd.print(tempDelta, 1);
-    lcd.print((char)0);
   }
 }
