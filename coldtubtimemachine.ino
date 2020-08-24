@@ -5,7 +5,6 @@
 // Setup variables
 const char degreeSymbol[] = "\xC2\xB0";
 const int sensorCount = 3;
-const int tempSamples = 10;
 int column = 0;
 int row = 0;
 float temps[sensorCount] = {0};
@@ -14,7 +13,8 @@ float tempAverage = 0;
 float tempDelta = 0;
 bool isLedOn = false;
 unsigned long updateTimeLast = 0; // Timestamp of last update
-const int updateDelay = 1000; // Time in ms between updates
+const int updateDelay = 1000;     // Time in ms between updates
+unsigned long elapsedMillis = 0;
 
 // Setup LCD, OneWire, DallasTemperature, sensor objects
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -22,21 +22,21 @@ OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
 DeviceAddress sensors[sensorCount] = {{}};
 
-// Function to show device address
-void printAddress(DeviceAddress sensor)
+// Function to get device address
+String getAddress(DeviceAddress sensor)
 {
-  // char address[16] = {""}; // Example: 28BE4D56B5013C8E
+  String address = "";
+
   for (uint8_t i = 0; i < 8; i++)
   {
-    if (sensor[i] < 16) // Pad segment if less than one char wide
-    {
-      Serial.print(F("0"));
-    }
-    Serial.print(sensor[i], HEX);
+    if (sensor[i] < 16) address += "0";
+    address += String(sensor[i], HEX);
   }
+
+  return address;
 }
 
-// Setup - Initialize the sensors here
+// Setup - Initialize sensors here
 void setup(void)
 {
   // Start serial port, on-board LED, sensors, LCD
@@ -75,7 +75,7 @@ void setup(void)
   Serial.print(F("Locating devices.... Found "));
   Serial.println(dt.getDeviceCount(), DEC);
 
-  // Get device addresses and resolutions
+  // Get sensor addresses
   oneWire.reset_search();
   for (int i = 0; i < sensorCount; i++)
   {
@@ -85,28 +85,29 @@ void setup(void)
     if (oneWire.search(sensors[i]))
     {
       Serial.print(F(" | address: "));
-      printAddress(sensors[i]);
-      // Serial.print(F(" | resolution: "));
-      // Serial.print(dt.getResolution(sensors[i]), DEC);
+      Serial.print(getAddress(sensors[i]));
       Serial.println();
     }
-    else
-    {
-      Serial.println(F(" | *** address not found ***"));
-    }
+    else Serial.println(F(" | *** address not found ***"));
   }
 }
 
-// Main - Get and show temperatures
+// Main - ALL THE THINGS!
 void loop(void)
 {
-  // Update timer without sleep delays
+  // Update each second (without sleep delays)
   if ((millis() - updateTimeLast) > updateDelay)
   {
     updateTimeLast = millis();
 
-    isLedOn = !isLedOn; // Toggle LED on and off
+    // Toggle LED each update
+    isLedOn = !isLedOn;
     digitalWrite(LED_BUILTIN, isLedOn ? HIGH : LOW);
+
+    // Get elapsed time
+    elapsedMillis = millis();
+    unsigned long durSS = (elapsedMillis / 1000) % 60;  //Seconds
+    unsigned long durMM = (elapsedMillis / (60000));    //Minutes
 
     // Get temperature average from first two sensors (water)
     dt.requestTemperatures();
@@ -114,22 +115,25 @@ void loop(void)
     for (int i = 0; i < sensorCount; i++)
     {
       temps[i] = dt.getTempF(sensors[i]);
-      if (i < 2)
-      {
-        tempAverage += temps[i];
-      }
+      if (i < 2) tempAverage += temps[i]; // Only average first two (water)
     }
     tempAverage /= 2;
 
+    // First time, set CSV header row & starting temperature
     if (tempStart == 0)
     {
-      // CSV header row
-      Serial.println(F("Sensor1,Sensor2,Sensor3,Start,Current,Delta"));
+      Serial.println(F("Time,Sensor1,Sensor2,Sensor3,Start,Current,Delta"));
       tempStart = tempAverage;
     }
     tempDelta = tempAverage - tempStart;
 
     // CSV data rows
+    if (durMM < 10) Serial.print(F("0"));
+    Serial.print(durMM);
+    Serial.print(":");
+    if (durSS < 10) Serial.print(F("0"));
+    Serial.print(durSS);
+    Serial.print(F(","));
     for (int i = 0; i < sensorCount; i++)
     {
       Serial.print(temps[i], 1);
@@ -141,49 +145,43 @@ void loop(void)
     Serial.print(F(","));
     Serial.println(tempDelta, 1);
 
-    // Display temperatures on two rows of a 16x2 display
-    // Example:
-    //  Row 0: 51.9 52.3 80.5 e
-    //  Row 1: 50.0>52.1: 2.1*F
+    // Display temperatures on 16x2 display
+    //  Row 0: 51.9 52.3  80.5e
+    //  Row 1: MM:SS 52.1  2.1°
     lcd.clear();
+
+    // Row 0
     row = 0;
     column = 0;
     lcd.setCursor(column, row);
     lcd.print(temps[0], 1);
     lcd.print(" ");
     lcd.print(temps[1], 1);
-    lcd.print(" ");
+    column = 10;
+    if (temps[2] < 100) column++;
+    lcd.setCursor(column, row);
     lcd.print(temps[2], 1);
     lcd.print("e");
 
+    // Row 1
     row = 1;
     column = 0;
-    if (tempStart >= 0 && tempStart < 10)
-    {
-      column++; // Pad with a space
-    }
     lcd.setCursor(column, row);
-    lcd.print(tempStart, 1);
-    lcd.setCursor(4, row);
-    lcd.print((char)1);
+    if (durMM < 10) lcd.print("0");
+    lcd.print(durMM);
+    lcd.print(":");
+    if (durSS < 10) lcd.print("0");
+    lcd.print(durSS);
 
-    column = 5;
-    if (tempAverage >= 0 && tempAverage < 10)
-    {
-      column++; // Pad with a space
-    }
+    column = 6;
+    if (tempAverage >= 0 && tempAverage < 10) column++;
     lcd.setCursor(column, row);
     lcd.print(tempAverage, 1);
-    lcd.print(":");
 
-    column = 10;
-    if (tempDelta >= 0 && tempDelta < 10)
-    {
-      column++; // Pad with a space
-    }
+    column = 11;
+    if (tempDelta >= 0 && tempDelta < 10) column++;
     lcd.setCursor(column, row);
     lcd.print(tempDelta, 1);
     lcd.print((char)0);
-    lcd.print("F");
   }
 }
