@@ -181,9 +181,10 @@ void loop(void)
     lcd.print(tempDelta, 1);
     lcd.print((char)0);
     // Time elapsed (MM:SS)
-    column = 11;
+    column = 10;
     lcd.setCursor(column, row);
-    if (durMM < 10) lcd.print("0");
+    if (durMM < 100) lcd.print(" ");
+    if (durMM < 10) lcd.print(" ");
     lcd.print(durMM);
     lcd.print(":");
     if (durSS < 10) lcd.print("0");
