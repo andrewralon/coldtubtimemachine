@@ -101,8 +101,8 @@ void loop(void)
     updateTimeLast = millis();
 
     // Toggle LED each update
-    isLedOn = !isLedOn;
-    digitalWrite(LED_BUILTIN, isLedOn ? HIGH : LOW);
+    //isLedOn = !isLedOn;
+    //digitalWrite(LED_BUILTIN, isLedOn ? HIGH : LOW);
 
     // Get elapsed time
     elapsedMillis = millis();
