@@ -1,17 +1,9 @@
+#include <PCD8544.h>
 #include <DallasTemperature.h>
-#include <NOKIA5110_TEXT.h>
-#include <NOKIA5110_TEXT_FONT.h>
-#include <NOKIA5110_TEXT_FONT_EIGHT.h>
-#include <NOKIA5110_TEXT_FONT_FIVE.h>
-#include <NOKIA5110_TEXT_FONT_FOUR.h>
-#include <NOKIA5110_TEXT_FONT_NINE.h>
-#include <NOKIA5110_TEXT_FONT_SEVEN.h>
-#include <NOKIA5110_TEXT_FONT_SIX.h>
-#include <NOKIA5110_TEXT_FONT_THREE.h>
-#include <NOKIA5110_TEXT_FONT_TWO.h>//#include <Nokia_LCD.h>
 #include <OneWire.h>
 
 #define WIDTH 5
+#define DEGREE 0
 #define inverse  false
 #define contrast 0xB4 // default is 0xBF set in LCDinit, Try 0xB1 - 0xBF, if your display is too dark
 #define bias 0x12 // LCD bias mode 1:48: Try 0x12 or 0x13 or 0x14 usually
@@ -58,6 +50,7 @@ const int sensorCount = 3;
 int row = 0;
 int column = 0;
 int character = 0;
+int calories = 0;
 float temps[sensorCount] = {0};
 float tempStart = 0;
 float tempAverage = 0;
@@ -67,11 +60,11 @@ unsigned long updateTimeLast = 0; // Timestamp of last update
 const int updateDelay = 1000;     // Time in ms between updates
 unsigned long elapsedMillis = 0;
 
-#define RST 9   // Reset pin
-#define CE 10   // Chip enable
-#define DC 11   // Data or command
-#define DIN 12  // Serial Data input
-#define CLK 13  // Serial clock
+#define RST 6   // Reset pin
+#define CE 7    // Chip enable
+#define DC 5    // Data or command
+#define DIN 4   // Serial Data input
+#define CLK 3   // Serial clock
 
 // Setup LCD, OneWire, DallasTemperature, sensor objects
 // DISPLAY    ARDUINO
@@ -89,14 +82,13 @@ unsigned long elapsedMillis = 0;
 OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
 DeviceAddress sensors[sensorCount] = {{}};
-NOKIA5110_TEXT lcd(RST, CE, DC, DIN, CLK);
-
+static PCD8544 lcd;
 
 // Nokia 5110 LCD module connections (CLK, DIN, D/C, CS, RST)
 //Adafruit_PCD8544 lcd = Adafruit_PCD8544(13, 12, 11, 10, 9);
 
-const unsigned char degree[7] = {0x06, 0x09, 0x09, 0x06, 0x00, 0x00, 0x00};
-const unsigned char arrow[7] = {0x00, 0x04, 0x02, 0x31, 0x02, 0x04, 0x00};
+static const byte degree[] = {0x06, 0x09, 0x09, 0x06, 0x00, 0x00, 0x00, 0x00};
+static const byte arrow[] = {0x00, 0x04, 0x02, 0x31, 0x02, 0x04, 0x00, 0x00};
 
 // Function to get device address
 String getAddress(DeviceAddress sensor) {
@@ -113,24 +105,15 @@ void setup(void) {
   Serial.begin(9600);
   Serial.println(F("O HAI"));
 
-
-  // Start serial port, on-board LED, sensors, LCD
+  // Start temp sensors and LCD
   // NOTE: Backlight logic is reversed! true = OFF, false = ON
-
-  pinMode(LED_BUILTIN, OUTPUT);
   dt.begin();
-
-  //lcd.begin();
+  lcd.begin(84, 48);
   //lcd.clearDisplay();
   //lcd.setBacklight(true);
   //lcd.setContrast(50);
   //lcd.setTextSize(1);
-  //defChar(lcd, 0x00, degree);
-  //defChar(lcd, 0x00, arrow);
-
-  lcd.LCDInit(inverse, contrast, bias); // init the lCD
-  lcd.LCDClear(0x00); //clear whole screen
-  lcd.LCDFont(FontNumber); // Set the font
+  lcd.createChar(0, degree);
 
   // Get all devices on the bus
   Serial.print(F("Locating devices.... Found "));
@@ -195,111 +178,73 @@ void loop(void) {
     Serial.print(F(","));
     Serial.println(tempDelta, 1);
 
-    // Display temperatures on 14x6 display
+    // Display information on 14x6 display
     // Row 12345678901234
-    //  0:  51.9°  52.3°
-    //  1: W  52.1°
-    //  2: W0 50.0°
-    //  3: Change   2.1°
-    //  4: Air     80.5°
-    //  5: Time 101:23
-    // Row 12345678901234
-    // Row 12345678901234
-    //  0:  51.9°  52.3°
-    //  1: Water   52.1°
-    //  2:  52.1 - 50.0=2.1°
-    //  3: Change   2.1°
-    //  4: Air     80.5°
-    //  5: Time 101:23
-    // Row 12345678901234
-    // Row 123456789012
-    //  0: 101:23  2.1°
-    //  1: Calories 123
+    //  0: 12.34°F 101:23 
+    //  1: Calories   123
     //  2:
-    //  3: Water  52.1°
-    //  4: 51.9° 52.3°
-    //  5: Air    80.5°
-    // Row 123456789012
+    //  3: Water   52.13°
+    //  4:  51.90° 52.35°
+    //  5: Air     80.52°
+    // Row 12345678901234
+    //  0: Time    101:23 
+    //  1: Change 12.34°F
+    //  2: Calories   123
+    //  3: Water   52.13°
+    //  4:  51.90° 52.35°
+    //  5: Air     80.52°
+    // Row 12345678901234
 
+    lcd.clear();
     int row = 0;
 
-    // Row 0 - "101:23  2.1°"
-    lcd.LCDClear(0x00);
-    lcd.LCDgotoXY(0, row++);
-    lcd.LCDString("123456789012");
-    lcd.LCDgotoXY(0, row++);
-    lcd.LCDString("MMM:SS  2.1");
-    lcd.LCDCustomChar(degree, sizeof(degree) / sizeof(unsigned char), 0x00, false);
-    lcd.LCDgotoXY(0, row++);
-    if (durMM < 100) lcd.LCDString(" ");
-    if (durMM < 10) lcd.LCDString(" ");
-    //lcd.LCDString((char)durMM);
-    lcd.LCDString(":");
-    if (durSS < 10) lcd.LCDString("0");
-    lcd.LCDString((char)durSS);
-    lcd.LCDCustomChar(degree, sizeof(degree) / sizeof(unsigned char), 0x00, false);
-    lcd.LCDgotoXY(0, row++);
-    //lcd.LCDFillBlock(1, 3);
-    lcd.LCDgotoXY(0, row++);
-    lcd.LCDCustomChar(durMM, 2, 0x00, false);
-    lcd.LCDgotoXY(0, row++);
-    lcd.LCDCustomChar(durSS, 3, 0x00, false);
+    // Row 0 - "12.34°F 101:23"
+    lcd.setCursor(0, row++);
+    lcd.print(tempDelta, 2);
+    lcd.write((char)DEGREE);
+    lcd.print("F ");
+    if (tempDelta < 10 && tempDelta >= 0) lcd.print(" ");
+    if (durMM < 100) lcd.print(" ");
+    if (durMM < 10) lcd.print(" ");
+    lcd.print(durMM);
+    lcd.print(":");
+    if (durSS < 10) lcd.print("0");
+    lcd.println(durSS);
+    
+    // Row 1 - "Calories   123"
+    calories = 123;
+    lcd.setCursor(0, row++);
+    lcd.print("Calories   ");
+    if (calories < 100) lcd.print(" ");
+    if (calories < 10) lcd.print(" ");
+    lcd.println(calories);
 
-    //if (durMM < 100) lcd.print(" ");
-    //if (durMM < 10) lcd.print(" ");
-    //lcd.print(durMM);
-    //lcd.print(":");
-    //if (durSS < 10) lcd.print("0");
-    //lcd.print(durSS);
+    //Row 2 - (empty)
+    lcd.setCursor(0, row++);
 
-    character = 9;
-    column = ((character * WIDTH) - 1);
-    //lcd.setCursor(column, row);
-    //if (tempDelta >= 0 && tempDelta < 10) lcd.print(" ");
-    //lcd.print(tempDelta, 1);
-    //lcd.println((char)223);
+    // Row 3 - "Water   52.13°"
+    lcd.setCursor(0, row++);
+    lcd.print("Water  ");
+    if (tempAverage < 100) lcd.print(" ");
+    if (tempAverage >= 0 && tempAverage < 10) lcd.print(" ");
+    lcd.print(tempAverage, 2);
+    lcd.write((char)DEGREE);
 
+    // Row 4 - " 51.90 52.35  "
+    lcd.setCursor(0, row++);
+    for (int i = 0; i < 2; i++) {
+      if (temps[i] < 100) lcd.print(" ");
+      if (temps[i] < 10 && temps[i] >= 0) lcd.print(" ");
+      lcd.print(temps[i], 2);
+      //lcd.write((char)DEGREE);
+    }
 
-    //lcd.print(temps[0], 1);
-    // Sensor2 (water)
-    character = 6;
-    column = ((character * WIDTH) - 1);
-    //lcd.setCursor(column, row);
-    //lcd.print(temps[1], 1);
-
-    // Row 1
-    // Sensor3 (air)
-    character = 11;
-    row = 1;
-    column = ((character * WIDTH) - 1);
-    if (temps[2] < 100) character++;
-    column = ((character * WIDTH) - 1);
-    //lcd.setCursor(column, row);
-    //lcd.print(temps[2], 1);
-
-    // Row 1
-    // Current water temperature (average of first two)
-    row = 1;
-    column = 0;
-    if (tempAverage >= 0 && tempAverage < 10) column++;
-    //lcd.setCursor(column, row);
-    //lcd.print(tempAverage, 1);
-    // Temperature change (current - starting)
-    column = 5;
-    if (tempDelta >= 0 && tempDelta < 10) column++;
-    //lcd.setCursor(column, row);
-    //lcd.print(tempDelta, 1);
-    //lcd.print((char)0);
-    // Time elapsed (MMM:SS)
-    column = 10;
-    //lcd.setCursor(column, row);
-    // if (durMM < 100) lcd.print(" ");
-    // if (durMM < 10) lcd.print(" ");
-    //lcd.print(durMM);
-    //lcd.print(":");
-    // if (durSS < 10) lcd.print("0");
-    //lcd.print(durSS);
-
-    //lcd.display();
+    // Row 5 - "Air     80.52°"
+    lcd.setCursor(0, row++);
+    lcd.print("Air    ");
+    if (temps[2] < 100) lcd.print(" ");
+    if (temps[2] < 10 && temps[2] >= 0) lcd.print(" ");
+    lcd.print(temps[2], 2);
+    lcd.write((char)DEGREE);
   }
 }
