@@ -180,71 +180,75 @@ void loop(void) {
 
     // Display information on 14x6 display
     // Row 12345678901234
-    //  0: 12.34°F 101:23 
+    //  0: 12.34°F 101:23
     //  1: Calories   123
     //  2:
     //  3: Water   52.13°
     //  4:  51.90° 52.35°
     //  5: Air     80.52°
     // Row 12345678901234
-    //  0: Time    101:23 
+    //  0: Time    101:23
     //  1: Change 12.34°F
     //  2: Calories   123
-    //  3: Water   52.13°
-    //  4:  51.90° 52.35°
-    //  5: Air     80.52°
+    //  3: Water  52.13°F
+    //  4:  51.90  52.35 
+    //  5: Air   101.52°F
     // Row 12345678901234
 
     lcd.clear();
     int row = 0;
 
-    // Row 0 - "12.34°F 101:23"
+    // Row 0 - "Time    101:23"
     lcd.setCursor(0, row++);
-    lcd.print(tempDelta, 2);
-    lcd.write((char)DEGREE);
-    lcd.print("F ");
-    if (tempDelta < 10 && tempDelta >= 0) lcd.print(" ");
+    lcd.print("Time    ");
     if (durMM < 100) lcd.print(" ");
     if (durMM < 10) lcd.print(" ");
     lcd.print(durMM);
     lcd.print(":");
     if (durSS < 10) lcd.print("0");
-    lcd.println(durSS);
-    
-    // Row 1 - "Calories   123"
-    calories = 123;
+    lcd.print(durSS);
+
+    // Row 1 - "Change 12.34°F"
+    lcd.setCursor(0, row++);
+    lcd.print("Change ");
+    if (tempDelta < 10 && tempDelta >= 0) lcd.print(" ");
+    lcd.print(tempDelta, 2);
+    lcd.write((char)DEGREE);
+    lcd.print("F");
+
+    // Row 2 - "Calories   123"
+    calories = 123; // DEBUG ONLY
     lcd.setCursor(0, row++);
     lcd.print("Calories   ");
     if (calories < 100) lcd.print(" ");
     if (calories < 10) lcd.print(" ");
-    lcd.println(calories);
+    lcd.print(calories);
 
-    //Row 2 - (empty)
+    // Row 4 - "Water  52.13°F"
     lcd.setCursor(0, row++);
-
-    // Row 3 - "Water   52.13°"
-    lcd.setCursor(0, row++);
-    lcd.print("Water  ");
+    lcd.print("Water ");
     if (tempAverage < 100) lcd.print(" ");
     if (tempAverage >= 0 && tempAverage < 10) lcd.print(" ");
     lcd.print(tempAverage, 2);
     lcd.write((char)DEGREE);
+    lcd.print("F");
 
-    // Row 4 - " 51.90 52.35  "
+    // Row 4 - " 51.90  52.35 "
     lcd.setCursor(0, row++);
     for (int i = 0; i < 2; i++) {
       if (temps[i] < 100) lcd.print(" ");
       if (temps[i] < 10 && temps[i] >= 0) lcd.print(" ");
       lcd.print(temps[i], 2);
-      //lcd.write((char)DEGREE);
+      if (i == 0) lcd.print(" ");
     }
 
-    // Row 5 - "Air     80.52°"
+    // Row 5 - "Air   101.52°F"
     lcd.setCursor(0, row++);
-    lcd.print("Air    ");
+    lcd.print("Air   ");
     if (temps[2] < 100) lcd.print(" ");
     if (temps[2] < 10 && temps[2] >= 0) lcd.print(" ");
     lcd.print(temps[2], 2);
     lcd.write((char)DEGREE);
+    lcd.print("F");
   }
 }
