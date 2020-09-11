@@ -1,3 +1,4 @@
+#include <DallasTemperature.h>
 #include <NOKIA5110_TEXT.h>
 #include <NOKIA5110_TEXT_FONT.h>
 #include <NOKIA5110_TEXT_FONT_EIGHT.h>
@@ -7,12 +8,7 @@
 #include <NOKIA5110_TEXT_FONT_SEVEN.h>
 #include <NOKIA5110_TEXT_FONT_SIX.h>
 #include <NOKIA5110_TEXT_FONT_THREE.h>
-#include <NOKIA5110_TEXT_FONT_TWO.h>
-
-//#include <Adafruit_PCD8544.h>
-//#include <Adafruit_GFX.h>      // include adafruit graphics library
-#include <DallasTemperature.h>
-//#include <Nokia_LCD.h>
+#include <NOKIA5110_TEXT_FONT_TWO.h>//#include <Nokia_LCD.h>
 #include <OneWire.h>
 
 #define WIDTH 5
@@ -89,29 +85,18 @@ unsigned long elapsedMillis = 0;
 // 8 GND   -> GND
 // Parameters: CLK, DIN, DC, CE, RST, (LIGHT is optional)
 //Nokia_LCD lcd(13, 12, 11, 10, 9, 8);
+
 OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
 DeviceAddress sensors[sensorCount] = {{}};
+NOKIA5110_TEXT lcd(RST, CE, DC, DIN, CLK);
+
 
 // Nokia 5110 LCD module connections (CLK, DIN, D/C, CS, RST)
 //Adafruit_PCD8544 lcd = Adafruit_PCD8544(13, 12, 11, 10, 9);
 
-// RST 1/ CD 2/ DC 3/ DIN 4/ CLK 5
-NOKIA5110_TEXT lcd(RST, CE, DC, DIN, CLK);
-//NOKIA5110_TEXT lcd(9, 10, 11, 12, 13);
-
-//const unsigned char degree[8] = {0x06, 0x09, 0x09, 0x06, 0x00, 0x00, 0x00, 0x00};
 const unsigned char degree[7] = {0x06, 0x09, 0x09, 0x06, 0x00, 0x00, 0x00};
-
-
-
-//void defChar (Adafruit_PCD8544 &lcd, int asc, const unsigned char row[8]) {
-//  int i;
-//  if ((asc < 0) || (asc > 7)) return;
-//  lcd.command (0x40 | (asc << 3));
-//  for (i = 0; i < 8; i++) lcd.write(row[i]);
-//  //lcd.home();
-//}
+const unsigned char arrow[7] = {0x00, 0x04, 0x02, 0x31, 0x02, 0x04, 0x00};
 
 // Function to get device address
 String getAddress(DeviceAddress sensor) {
@@ -128,20 +113,6 @@ void setup(void) {
   Serial.begin(9600);
   Serial.println(F("O HAI"));
 
-  // Create degree and arrow symbols in the LCD display
-  
-  //lcd.createChar(0, charDegree);
-  byte charArrow[8] = {
-    0b00000,
-    0b00100,
-    0b00010,
-    0b11111,
-    0b00010,
-    0b00100,
-    0b00000,
-    0b00000
-  };
-  //lcd.createChar(0, degree);
 
   // Start serial port, on-board LED, sensors, LCD
   // NOTE: Backlight logic is reversed! true = OFF, false = ON
@@ -241,43 +212,39 @@ void loop(void) {
     //  4: Air     80.5°
     //  5: Time 101:23
     // Row 12345678901234
-    // Row 12345678901234
-    //  0: 101:23    2.1°
-    //  1: Calories   123
-    //  2: Water    52.1°
-    //  3: Air      80.5°
-    //  4:
-    //  5:  51.9°  52.3°
-    // Row 12345678901234
-    //lcd.clear();
+    // Row 123456789012
+    //  0: 101:23  2.1°
+    //  1: Calories 123
+    //  2:
+    //  3: Water  52.1°
+    //  4: 51.9° 52.3°
+    //  5: Air    80.5°
+    // Row 123456789012
 
-    //lcd.clearDisplay();
-    //lcd.setCursor(0, 0);
-    //lcd.display();
+    int row = 0;
 
+    // Row 0 - "101:23  2.1°"
     lcd.LCDClear(0x00);
-    lcd.LCDgotoXY(0, 0);
-    lcd.LCDString("12345678901234");
-    lcd.LCDgotoXY(0, 1);
-    lcd.LCDString("1.23");
+    lcd.LCDgotoXY(0, row++);
+    lcd.LCDString("123456789012");
+    lcd.LCDgotoXY(0, row++);
+    lcd.LCDString("MMM:SS  2.1");
     lcd.LCDCustomChar(degree, sizeof(degree) / sizeof(unsigned char), 0x00, false);
-    lcd.LCDString("F");
+    lcd.LCDgotoXY(0, row++);
+    if (durMM < 100) lcd.LCDString(" ");
+    if (durMM < 10) lcd.LCDString(" ");
+    //lcd.LCDString((char)durMM);
+    lcd.LCDString(":");
+    if (durSS < 10) lcd.LCDString("0");
+    lcd.LCDString((char)durSS);
+    lcd.LCDCustomChar(degree, sizeof(degree) / sizeof(unsigned char), 0x00, false);
+    lcd.LCDgotoXY(0, row++);
+    //lcd.LCDFillBlock(1, 3);
+    lcd.LCDgotoXY(0, row++);
+    lcd.LCDCustomChar(durMM, 2, 0x00, false);
+    lcd.LCDgotoXY(0, row++);
+    lcd.LCDCustomChar(durSS, 3, 0x00, false);
 
-    //lcd.drawCircle(2, 2, 2, BLACK);
-    //lcd.display();
-    //lcd.println("12345678901234");
-    //lcd.write("1.23");
-    //lcd.write((char)0x00);
-    //lcd.drawCircle(2, 2, 2, BLACK);
-    //lcd.println("F");
-
-
-    // Row 0 - Water sensors
-    // "101:23    2.1°"
-    character = 0;
-    row = 1;
-    column = ((character * WIDTH));
-    //lcd.setCursor(column, row);
     //if (durMM < 100) lcd.print(" ");
     //if (durMM < 10) lcd.print(" ");
     //lcd.print(durMM);
