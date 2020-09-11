@@ -1,6 +1,5 @@
 #include <Nokia_LCD.h>
 
-// wide, vertical
 const unsigned char logo[] PROGMEM = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x1C, 0x1C, 0x3C, 0xFC, 0xFC, 0xFC,
   0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC,
@@ -36,34 +35,36 @@ const unsigned char logo[] PROGMEM = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-// Pins: CLK, DIN, DC, CE, RST, BL
-Nokia_LCD lcd(13, 12, 11, 10, 9, 8);
+// DISPLAY    ARDUINO
+// 1 RST   -> 9
+// 2 CE    -> 10
+// 3 DC    -> 11
+// 4 DIN   -> 12
+// 5 CLK   -> 13
+// 6 VCC   -> 3.3V (optional! backlight is brighter with it)
+// 7 LIGHT -> 8
+// 8 GND   -> GND
+// Parameters: CLK, DIN, DC, CE, RST, (LIGHT is optional)
+Nokia_LCD lcd(13, 12, 11, 10, 9, 8);//
 
 void setup() {
   Serial.begin(9600);
 
+  // LCD setup
+  // NOTE: Backlight logic is reversed! true = OFF, false = ON
   lcd.begin();
   lcd.setBacklight(true);
   lcd.setContrast(50);
 
   // Splash screen
-  //lcd.clear(true);
-  //delay(1000);
-  //lcd.draw(logo, sizeof(logo) / sizeof(logo[0]), true);
-  //delay(3000);
-  //lcd.clear();
-  //lcd.setBacklight(false);
+  lcd.clear(false);
+  delay(1000);
+  lcd.draw(logo, sizeof(logo) / sizeof(logo[0]), true);
+  delay(3000);
+  lcd.clear();
 }
 
 void loop() {
-  lcd.setBacklight(true);
-  lcd.clear();
-  lcd.draw(logo, sizeof(logo) / sizeof(logo[0]), true);
-
-  delay(3000);
-  lcd.clear();
-  lcd.setBacklight(false);
-
   int index = 1;
   lcd.setCursor(38, index++);
   lcd.print("i");
@@ -73,6 +74,4 @@ void loop() {
   lcd.print("you");
   lcd.setCursor(0, 5);
   lcd.print("team ralon FTW");
-
-  delay(3000);
 }
