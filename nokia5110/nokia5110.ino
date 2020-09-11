@@ -45,7 +45,7 @@ const unsigned char logo[] PROGMEM = {
 // 7 LIGHT -> 8
 // 8 GND   -> GND
 // Parameters: CLK, DIN, DC, CE, RST, (LIGHT is optional)
-Nokia_LCD lcd(13, 12, 11, 10, 9, 8);//
+Nokia_LCD lcd(13, 12, 11, 10, 9, 8);
 
 void setup() {
   Serial.begin(9600);
