@@ -56,14 +56,14 @@ float tempStart = 0;
 float tempAverage = 0;
 float tempDelta = 0;
 bool isLedOn = false;
-//unsigned long updateTimeLast = 0; // Timestamp of last update
 const int updateDelay = 1000;     // Time in ms between updates
 unsigned long elapsedMillis = 0;  // Timestamp of last update
 bool backlightOn = true;
 bool buttonState = false;
 unsigned long backlightStartTime = 0;
-#define BACKLIGHT_DURATION 1200000 // in ms; 20 minutes
+#define BACKLIGHT_DURATION 1200000 // Time in ms to keep backlight on (20 min)
 #define BACKLIGHT_BUTTON 9
+#define UPDATE_DELAY 1000 // Time in ms between updates
 
 OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
@@ -124,7 +124,7 @@ void setup(void) {
 // Main - ALL THE THINGS!
 void loop(void) {
   // Update each second (without sleep delays)
-  if ((millis() - elapsedMillis) > updateDelay) {
+  if ((millis() - elapsedMillis) > UPDATE_DELAY) {
 
     // Backlight logic
     buttonState = digitalRead(BACKLIGHT_BUTTON);
