@@ -2,7 +2,6 @@
 #include <DallasTemperature.h>
 #include <OneWire.h>
 
-#define WIDTH 5
 #define DEGREE 0
 #define inverse  false
 #define contrast 0xB4 // default is 0xBF set in LCDinit, Try 0xB1 - 0xBF, if your display is too dark
@@ -63,22 +62,6 @@ unsigned long elapsedMillis = 0;
 OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
 DeviceAddress sensors[sensorCount] = {{}};
-
-// Setup LCD, OneWire, DallasTemperature, sensor objects
-// DISPLAY    ARDUINO
-// 1 RST   -> 6
-// 2 CE    -> 7
-// 3 DC    -> 5
-// 4 DIN   -> 4
-// 5 CLK   -> 3
-// 6 VCC   -> 3.3V (optional! backlight is brighter with it)
-// 7 LIGHT -> 8
-// 8 GND   -> GND
-// Parameters: CLK, DIN, DC, CE, RST, LIGHT (LIGHT is optional)
-//Nokia_LCD lcd(CLK, DIN, DC, CE, RST);
-
-// Nokia 5110 LCD module connections (CLK, DIN, DC, CE, RST)
-//Adafruit_PCD8544 lcd = Adafruit_PCD8544(CLK, DIN, DC, CE, RST);
 
 #define RST 6   // Reset pin
 #define CE 7    // Chip enable
