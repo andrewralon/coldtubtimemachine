@@ -8,6 +8,8 @@
 #define bias 0x12 // LCD bias mode 1:48: Try 0x12 or 0x13 or 0x14 usually
 #define FontNumber 1 //1-9, 1 is default ,  Change define in NOKIA5110_TEXT.h if using non default
 
+static const byte degree[] = {0x06, 0x09, 0x09, 0x06, 0x00, 0x00, 0x00, 0x00};
+static const byte arrow[] = {0x00, 0x04, 0x02, 0x31, 0x02, 0x04, 0x00, 0x00};
 const unsigned char logo[] PROGMEM = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x1C, 0x1C, 0x3C, 0xFC, 0xFC, 0xFC,
   0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC,
@@ -44,7 +46,6 @@ const unsigned char logo[] PROGMEM = {
 };
 
 // Setup variables
-const char degreeSymbol[] = "\xC2\xB0";
 const int sensorCount = 3;
 int row = 0;
 int column = 0;
@@ -55,24 +56,26 @@ float tempStart = 0;
 float tempAverage = 0;
 float tempDelta = 0;
 bool isLedOn = false;
-unsigned long updateTimeLast = 0; // Timestamp of last update
+//unsigned long updateTimeLast = 0; // Timestamp of last update
 const int updateDelay = 1000;     // Time in ms between updates
-unsigned long elapsedMillis = 0;
+unsigned long elapsedMillis = 0;  // Timestamp of last update
+bool backlightOn = true;
+bool buttonState = false;
+unsigned long backlightStartTime = 0;
+#define BACKLIGHT_DURATION 1200000 // in ms; 20 minutes
+#define BACKLIGHT_BUTTON 9
 
 OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
 DeviceAddress sensors[sensorCount] = {{}};
 
+#define LIGHT 8 // Backlight
 #define RST 6   // Reset pin
 #define CE 7    // Chip enable
 #define DC 5    // Data or command
 #define DIN 4   // Serial Data input
 #define CLK 3   // Serial clock
-
 static PCD8544 lcd;
-
-static const byte degree[] = {0x06, 0x09, 0x09, 0x06, 0x00, 0x00, 0x00, 0x00};
-static const byte arrow[] = {0x00, 0x04, 0x02, 0x31, 0x02, 0x04, 0x00, 0x00};
 
 // Function to get device address
 String getAddress(DeviceAddress sensor) {
@@ -89,14 +92,14 @@ void setup(void) {
   Serial.begin(9600);
   Serial.println(F("O HAI"));
 
+  pinMode(BACKLIGHT_BUTTON, INPUT);
+  pinMode(LIGHT, OUTPUT);
+
   // Start temp sensors and LCD
   // NOTE: Backlight logic is reversed! true = OFF, false = ON
   dt.begin();
   lcd.begin(84, 48);
-  //lcd.clearDisplay();
-  //lcd.setBacklight(true);
-  //lcd.setContrast(50);
-  //lcd.setTextSize(1);
+  lcd.setContrast(50);
   lcd.createChar(0, degree);
 
   // Get all devices on the bus
@@ -121,8 +124,26 @@ void setup(void) {
 // Main - ALL THE THINGS!
 void loop(void) {
   // Update each second (without sleep delays)
-  if ((millis() - updateTimeLast) > updateDelay) {
-    updateTimeLast = millis();
+  if ((millis() - elapsedMillis) > updateDelay) {
+
+    // Backlight logic
+    buttonState = digitalRead(BACKLIGHT_BUTTON);
+    if (buttonState) {
+      if (backlightOn) {
+        backlightOn = false;
+        backlightStartTime = millis();
+      }
+      else {
+        backlightOn = true;
+        backlightStartTime = 0;
+      }
+    }
+    if (!backlightOn && millis() - backlightStartTime >= BACKLIGHT_DURATION) {
+      backlightOn = true;
+    }
+    digitalWrite(LIGHT, backlightOn);
+
+    //updateTimeLast = millis();
 
     // Get elapsed time
     elapsedMillis = millis();
@@ -171,7 +192,7 @@ void loop(void) {
     //  1: Change 12.34°F
     //  2: Calories   123
     //  3: Water  52.13°F
-    //  4:  51.90  52.35 
+    //  4:  51.90  52.35
     //  5: Air   101.52°F
     // Row 12345678901234
 
