@@ -179,13 +179,9 @@ void loop(void) {
     Serial.println(tempDelta, 1);
 
     // Display information on 14x6 display
-    // Row 12345678901234
-    //  0: 12.34°F 101:23
-    //  1: Calories   123
-    //  2:
-    //  3: Water   52.13°
-    //  4:  51.90° 52.35°
-    //  5: Air     80.52°
+    int row = 0;
+    lcd.clear();
+
     // Row 12345678901234
     //  0: Time    101:23
     //  1: Change 12.34°F
@@ -194,9 +190,6 @@ void loop(void) {
     //  4:  51.90  52.35 
     //  5: Air   101.52°F
     // Row 12345678901234
-
-    lcd.clear();
-    int row = 0;
 
     // Row 0 - "Time    101:23"
     lcd.setCursor(0, row++);
