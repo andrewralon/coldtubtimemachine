@@ -60,32 +60,33 @@ unsigned long updateTimeLast = 0; // Timestamp of last update
 const int updateDelay = 1000;     // Time in ms between updates
 unsigned long elapsedMillis = 0;
 
+OneWire oneWire(2);
+DallasTemperature dt(&oneWire);
+DeviceAddress sensors[sensorCount] = {{}};
+
+// Setup LCD, OneWire, DallasTemperature, sensor objects
+// DISPLAY    ARDUINO
+// 1 RST   -> 6
+// 2 CE    -> 7
+// 3 DC    -> 5
+// 4 DIN   -> 4
+// 5 CLK   -> 3
+// 6 VCC   -> 3.3V (optional! backlight is brighter with it)
+// 7 LIGHT -> 8
+// 8 GND   -> GND
+// Parameters: CLK, DIN, DC, CE, RST, LIGHT (LIGHT is optional)
+//Nokia_LCD lcd(CLK, DIN, DC, CE, RST);
+
+// Nokia 5110 LCD module connections (CLK, DIN, DC, CE, RST)
+//Adafruit_PCD8544 lcd = Adafruit_PCD8544(CLK, DIN, DC, CE, RST);
+
 #define RST 6   // Reset pin
 #define CE 7    // Chip enable
 #define DC 5    // Data or command
 #define DIN 4   // Serial Data input
 #define CLK 3   // Serial clock
 
-// Setup LCD, OneWire, DallasTemperature, sensor objects
-// DISPLAY    ARDUINO
-// 1 RST   -> 9
-// 2 CE    -> 10
-// 3 DC    -> 11
-// 4 DIN   -> 12
-// 5 CLK   -> 13
-// 6 VCC   -> 3.3V (optional! backlight is brighter with it)
-// 7 LIGHT -> 8
-// 8 GND   -> GND
-// Parameters: CLK, DIN, DC, CE, RST, (LIGHT is optional)
-//Nokia_LCD lcd(13, 12, 11, 10, 9, 8);
-
-OneWire oneWire(2);
-DallasTemperature dt(&oneWire);
-DeviceAddress sensors[sensorCount] = {{}};
 static PCD8544 lcd;
-
-// Nokia 5110 LCD module connections (CLK, DIN, D/C, CS, RST)
-//Adafruit_PCD8544 lcd = Adafruit_PCD8544(13, 12, 11, 10, 9);
 
 static const byte degree[] = {0x06, 0x09, 0x09, 0x06, 0x00, 0x00, 0x00, 0x00};
 static const byte arrow[] = {0x00, 0x04, 0x02, 0x31, 0x02, 0x04, 0x00, 0x00};
