@@ -56,7 +56,6 @@ float tempStart = 0;
 float tempAverage = 0;
 float tempDelta = 0;
 bool isLedOn = false;
-const int updateDelay = 1000;     // Time in ms between updates
 unsigned long elapsedMillis = 0;  // Timestamp of last update
 bool backlightOn = true;
 bool buttonState = false;
@@ -130,25 +129,23 @@ void loop(void) {
     buttonState = digitalRead(BACKLIGHT_BUTTON);
     if (buttonState) {
       if (backlightOn) {
-        backlightOn = false;
         backlightStartTime = millis();
       }
       else {
-        backlightOn = true;
         backlightStartTime = 0;
       }
+      backlightOn = !backlightOn;
     }
-    if (!backlightOn && millis() - backlightStartTime >= BACKLIGHT_DURATION) {
+    if (!backlightOn &&
+        millis() - backlightStartTime >= BACKLIGHT_DURATION) {
       backlightOn = true;
     }
     digitalWrite(LIGHT, backlightOn);
 
-    //updateTimeLast = millis();
-
     // Get elapsed time
     elapsedMillis = millis();
-    unsigned long durSS = (elapsedMillis / 1000) % 60;  //Seconds
-    unsigned long durMM = (elapsedMillis / (60000));    //Minutes
+    unsigned long durSS = (elapsedMillis / 1000) % 60;  // Seconds
+    unsigned long durMM = (elapsedMillis / (60000));    // Minutes
 
     // Get temperature average from first two sensors (water)
     dt.requestTemperatures();
