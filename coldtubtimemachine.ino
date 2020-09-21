@@ -3,7 +3,7 @@
 #include <OneWire.h>
 
 #define DEGREE 0
-#define inverse  false
+#define inverse false
 #define contrast 0xB4 // default is 0xBF set in LCDinit, Try 0xB1 - 0xBF, if your display is too dark
 #define bias 0x12 // LCD bias mode 1:48: Try 0x12 or 0x13 or 0x14 usually
 #define FontNumber 1 //1-9, 1 is default ,  Change define in NOKIA5110_TEXT.h if using non default
