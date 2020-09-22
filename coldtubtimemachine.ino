@@ -58,6 +58,8 @@ float tempDelta = 0;
 bool isLedOn = false;
 bool isWarmedUp = false;
 unsigned long elapsedMillis = 0;  // Timestamp of last update
+unsigned long durSS = 0;
+unsigned long durMM = 0;
 bool backlightOn = true;
 bool buttonState = false;
 unsigned long backlightStartTime = 0;
@@ -146,8 +148,7 @@ void loop(void) {
     }
     digitalWrite(LIGHT, backlightOn);
 
-    unsigned long durSS = 0;
-    unsigned long durMM = 0;
+    // Handle warmup
     isWarmedUp = isWarmedUp || ((int)elapsedMillis - WARMUP_DELAY) > 0;
     if (isWarmedUp) {
       durSS = ((elapsedMillis - WARMUP_DELAY) / 1000) % 60;  // Seconds
