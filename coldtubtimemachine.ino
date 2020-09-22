@@ -56,6 +56,7 @@ float tempStart = 0;
 float tempAverage = 0;
 float tempDelta = 0;
 bool isLedOn = false;
+bool isWarmedUp = false;
 unsigned long elapsedMillis = 0;  // Timestamp of last update
 bool backlightOn = true;
 bool buttonState = false;
@@ -63,7 +64,7 @@ unsigned long backlightStartTime = 0;
 #define BACKLIGHT_DURATION 1200000 // Time in ms to keep backlight on (20 min)
 #define BACKLIGHT_BUTTON 9
 #define UPDATE_DELAY 1000 // Time in ms between updates
-#define WARMUP_DELAY 2000 // Time in ms before starting timer and temperature logging
+#define WARMUP_DELAY 3000 // Time in ms before starting timer and temperature logging
 
 OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
@@ -125,11 +126,14 @@ void setup(void) {
 void loop(void) {
   // Update each second (without sleep delays)
   if ((millis() - elapsedMillis) > UPDATE_DELAY) {
+    // Get elapsed time
+    elapsedMillis = millis();
+
     // Backlight logic
     buttonState = digitalRead(BACKLIGHT_BUTTON);
     if (buttonState) {
       if (backlightOn) {
-        backlightStartTime = millis();
+        backlightStartTime = elapsedMillis;
       }
       else {
         backlightStartTime = 0;
@@ -137,7 +141,7 @@ void loop(void) {
       backlightOn = !backlightOn;
     }
     if (!backlightOn &&
-        millis() - backlightStartTime >= BACKLIGHT_DURATION) {
+        elapsedMillis - backlightStartTime >= BACKLIGHT_DURATION) {
       backlightOn = true;
     }
     digitalWrite(LIGHT, backlightOn);
@@ -145,11 +149,10 @@ void loop(void) {
     // Get elapsed time
     unsigned long durSS = 0;
     unsigned long durMM = 0;
-    int currentMillis = (int)millis() - WARMUP_DELAY;
-    if (currentMillis > 0) {
-      elapsedMillis = millis() - WARMUP_DELAY;
-      durSS = (elapsedMillis / 1000) % 60;  // Seconds
-      durMM = (elapsedMillis / (60000));    // Minutes
+    isWarmedUp = isWarmedUp || ((int)elapsedMillis - WARMUP_DELAY) > 0;
+    if (isWarmedUp) {
+      durSS = ((elapsedMillis - WARMUP_DELAY) / 1000) % 60;  // Seconds
+      durMM = ((elapsedMillis - WARMUP_DELAY) / (60000));    // Minutes
     }
 
     // Get temperature average from first two sensors (water)
@@ -162,7 +165,7 @@ void loop(void) {
     tempAverage /= 2;
 
     // First time, set CSV header row & starting temperature
-    if (currentMillis > 0) {
+    if (isWarmedUp) {
       if (tempStart == 0) {
         Serial.println(F("Time,Sensor1,Sensor2,Sensor3,Start,Current,Delta"));
         tempStart = tempAverage;
