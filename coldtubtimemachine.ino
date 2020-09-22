@@ -63,6 +63,7 @@ unsigned long backlightStartTime = 0;
 #define BACKLIGHT_DURATION 1200000 // Time in ms to keep backlight on (20 min)
 #define BACKLIGHT_BUTTON 9
 #define UPDATE_DELAY 1000 // Time in ms between updates
+#define WARMUP_DELAY 2000 // Time in ms before starting timer and temperature logging
 
 OneWire oneWire(2);
 DallasTemperature dt(&oneWire);
@@ -124,7 +125,6 @@ void setup(void) {
 void loop(void) {
   // Update each second (without sleep delays)
   if ((millis() - elapsedMillis) > UPDATE_DELAY) {
-
     // Backlight logic
     buttonState = digitalRead(BACKLIGHT_BUTTON);
     if (buttonState) {
@@ -143,9 +143,14 @@ void loop(void) {
     digitalWrite(LIGHT, backlightOn);
 
     // Get elapsed time
-    elapsedMillis = millis();
-    unsigned long durSS = (elapsedMillis / 1000) % 60;  // Seconds
-    unsigned long durMM = (elapsedMillis / (60000));    // Minutes
+    unsigned long durSS = 0;
+    unsigned long durMM = 0;
+    int currentMillis = (int)millis() - WARMUP_DELAY;
+    if (currentMillis > 0) {
+      elapsedMillis = millis() - WARMUP_DELAY;
+      durSS = (elapsedMillis / 1000) % 60;  // Seconds
+      durMM = (elapsedMillis / (60000));    // Minutes
+    }
 
     // Get temperature average from first two sensors (water)
     dt.requestTemperatures();
@@ -157,16 +162,18 @@ void loop(void) {
     tempAverage /= 2;
 
     // First time, set CSV header row & starting temperature
-    if (tempStart == 0) {
-      Serial.println(F("Time,Sensor1,Sensor2,Sensor3,Start,Current,Delta"));
-      tempStart = tempAverage;
+    if (currentMillis > 0) {
+      if (tempStart == 0) {
+        Serial.println(F("Time,Sensor1,Sensor2,Sensor3,Start,Current,Delta"));
+        tempStart = tempAverage;
+      }
+      tempDelta = tempAverage - tempStart;
     }
-    tempDelta = tempAverage - tempStart;
 
     // CSV data rows
     if (durMM < 10) Serial.print(F("0"));
     Serial.print(durMM);
-    Serial.print(":");
+    Serial.print(F(":"));
     if (durSS < 10) Serial.print(F("0"));
     Serial.print(durSS);
     Serial.print(F(","));
@@ -199,7 +206,7 @@ void loop(void) {
     if (durMM < 100) lcd.print(" ");
     if (durMM < 10) lcd.print(" ");
     lcd.print(durMM);
-    lcd.print(":");
+    lcd.print(F(":"));
     if (durSS < 10) lcd.print("0");
     lcd.print(durSS);
 
