@@ -146,7 +146,6 @@ void loop(void) {
     }
     digitalWrite(LIGHT, backlightOn);
 
-    // Get elapsed time
     unsigned long durSS = 0;
     unsigned long durMM = 0;
     isWarmedUp = isWarmedUp || ((int)elapsedMillis - WARMUP_DELAY) > 0;
