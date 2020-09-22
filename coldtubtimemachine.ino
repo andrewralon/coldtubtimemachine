@@ -206,7 +206,7 @@ void loop(void) {
     if (durMM < 100) lcd.print(" ");
     if (durMM < 10) lcd.print(" ");
     lcd.print(durMM);
-    lcd.print(F(":"));
+    lcd.print(":");
     if (durSS < 10) lcd.print("0");
     lcd.print(durSS);
 
